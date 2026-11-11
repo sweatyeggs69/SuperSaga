@@ -1,0 +1,33 @@
+# Never commit the game or anything derived from it
+*.gba
+*.GBA
+*.sav
+*.bak
+rom/
+build/
+build-*/
+out/
+.DS_Store
+.vscode/
+.idea/
+
+# Disassembler / analysis output derived from the ROM
+generated/
+generated/**/*.s
+generated/**/*.asm
+*.bin
+*.lz
+
+# Screenshots
+*.png
+*.jpg
+*.jpeg
+Screenshot*
+# Original SuperSaga artwork (logo, icon preview) is committed
+!assets/**/*.png
+
+# Milestone screenshots (may show ROM-derived art)
+screenshots/
+
+# FetchContent downloads (CI and local builds)
+.deps/
