@@ -98,8 +98,9 @@ public:
     std::span<const u8> sram() const { return std::span<const u8>(sram_).first(save_size()); }
     bool has_eeprom() const { return eeprom_; }
     std::size_t save_size() const { return eeprom_ ? eeprom_size_ : sram_.size(); }
-    // Writable IWRAM, for game tweaks (cheats). Call between frames.
+    // Writable IWRAM and EWRAM, for game tweaks (cheats). Call between frames.
     std::span<u8> iwram_mut() { return iwram_; }
+    std::span<u8> ewram_mut() { return ewram_; }
     // Writable ROM image (this Gba's own copy), for in-memory code tweaks. Call between frames.
     std::span<u8> rom_mut() { return rom_; }
     std::string debug_state() const;

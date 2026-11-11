@@ -452,6 +452,7 @@ const char* default_description(const std::string& name) {
     if (name == "Display") return "How the game is drawn on your screen.";
     if (name == "Controls") return "Keyboard and controller buttons, turbo and shortcuts.";
     if (name == "States") return "Save states: save and load anywhere.";
+    if (name == "Cheats") return "Optional changes to the game.";
     if (name == "Achievements") return "RetroAchievements sign-in and progress.";
     if (name == "Updates") return "Your version and new releases.";
     if (name == "About") return "Version, credits and licenses.";

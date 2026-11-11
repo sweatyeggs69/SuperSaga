@@ -18,6 +18,7 @@
 #include <vector>
 
 #include "app/achievements.h"
+#include "app/cheats.h"
 #include "app/bmp.h"
 #include "app/config.h"
 #include "app/fsutil.h"
@@ -105,6 +106,8 @@ private:
     std::string hotkey_hint(bool brief) const;
     void show_toast(const std::string& text, int slot, toast::Style style = toast::Style::Success);
     void draw_states_tab();
+    void draw_cheats_tab(Config& config);
+    bool cheats_allowed() const;
     std::unique_ptr<states::Store> store_;
     int slot_ = states::kDefaultSlot;
     std::array<SDL_Texture*, states::kSlots + 1> thumb_tex_{};
@@ -231,6 +234,7 @@ bool App::init_window() {
     updater_ = std::make_unique<update::Updater>(SUPERSAGA_VERSION);
     register_options_tab("Game", [this](Config& c) { draw_game_tab(c); }, /*before_builtin=*/true);
     register_options_tab("States", [this](Config&) { draw_states_tab(); });
+    register_options_tab("Cheats", [this](Config& c) { draw_cheats_tab(c); });
     achievements_->set_restart_handler([this] {
         if (!game_) return;
         game_->flush_save();
@@ -465,6 +469,11 @@ void App::update_emulation() {
         const std::uint16_t keys = std::uint16_t(controls_->poll_frame() | script_keys_);
         game_->set_keys(keys);
         game_->run_frame();
+        if (cheats_allowed()) {
+            cheats::apply(game_->ewram_mut(), cheats::Flags{config_.get_bool("cheats.hp", false),
+                                                            config_.get_bool("cheats.bp", false),
+                                                            config_.get_bool("cheats.coins", false)});
+        }
         if (achievements_) achievements_->frame(*game_);
         ++game_frames_;
         while (state_script_pos_ < state_script_.size() && state_script_[state_script_pos_].frame <= game_frames_) {
@@ -1254,6 +1263,33 @@ void App::draw_save_section() {
         if (ImGui::Button("Cancel")) ImGui::CloseCurrentPopup();
         ImGui::EndPopup();
     }
+}
+
+bool App::cheats_allowed() const { return !(achievements_ && achievements_->hardcore()); }
+
+void App::draw_cheats_tab(Config& config) {
+    theme::section("Mario and Luigi");
+    const bool allowed = cheats_allowed();
+    ImGui::BeginDisabled(!allowed);
+    struct Toggle { const char* label; const char* key; const char* help; };
+    static constexpr Toggle kToggles[] = {
+        {"Infinite HP", "cheats.hp", "Both brothers' HP stays full, so damage never drains it."},
+        {"Infinite BP", "cheats.bp", "Bros. Points refill after every Bros. Attack."},
+        {"Max coins", "cheats.coins", "Your coins stay at 9999."},
+    };
+    for (const Toggle& t : kToggles) {
+        bool on = config.get_bool(t.key, false);
+        if (theme::toggle(t.label, &on)) config.set_bool(t.key, on);
+        ImGui::PushFont(theme::font_small());
+        ImGui::TextDisabled("%s", t.help);
+        ImGui::PopFont();
+    }
+    ImGui::EndDisabled();
+    ImGui::Dummy(ImVec2(0, 4.0f));
+    ImGui::PushFont(theme::font_small());
+    if (!allowed) ImGui::TextDisabled("Cheats are off while RetroAchievements hardcore mode is on.");
+    else ImGui::TextDisabled("HP and BP refill up to each brother's current maximum. Cheats stay on until you turn them off.");
+    ImGui::PopFont();
 }
 
 void App::draw_game_tab(Config& config) {

@@ -45,4 +45,14 @@ inline constexpr std::string_view kSaveHeader{"\x00\x00" "GPRLAM", 8};
 // and the picture stays 3:2.
 inline constexpr bool kWidescreen = false;
 
+// The brothers' stats and the coin count in EWRAM, used by the cheats menu. Checked on 2026-11-11
+// at the start of a new game (Mario HP 10/10, Luigi HP 12/12, BP 10/10, 0 coins) and matching
+// the community Action Replay codes for the USA game. Each brother:
+//   +0 u16 current HP   +2 u16 max HP   +4 u16 (base max HP)
+//   +6 u16 current BP   +8 u16 max BP   +A u16 (base max BP)
+inline constexpr unsigned kMarioStatsAddress = 0x02004866;
+inline constexpr unsigned kLuigiStatsAddress = 0x020048A2;
+inline constexpr unsigned kCoinsAddress = 0x020048E0;  // u16, the game shows up to 9999
+inline constexpr unsigned kMaxCoins = 9999;
+
 }  // namespace supersaga::game
