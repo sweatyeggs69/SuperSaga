@@ -180,6 +180,7 @@ private:
     void ppu_render_text_bg(int bg, int y, u16* color, u8* opaque);
     // Widescreen level reconstruction (wide_level.cpp, specific to this game).
     void wide_level_detect();
+    void wide_battle_detect(u16 dispcnt);  // part of wide_level_detect: battle backdrops
     u16 wide_level_entry(int bg, s32 tx, s32 ty) const;  // entry of wide_level_[bg] at level tile (tx, ty)
     u16 wide_ram16(u32 a) const;
     u32 wide_ram32(u32 a) const;

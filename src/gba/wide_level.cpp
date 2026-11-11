@@ -26,7 +26,7 @@
 // least one block layer matches; only those widen. A block layer that does not match, and
 // every other background (text boxes, the field HUD), is hidden at the sides rather than
 // showing stale or wrapped VRAM. Only addresses and layout descriptions belong here; never
-// copy game data into the repo.
+// copy game data into the repo. Battles are handled separately (wide_battle_detect).
 #include "gba.h"
 
 namespace supersaga::gba {
@@ -61,6 +61,22 @@ u16 Gba::wide_level_entry(int bg, s32 tx, s32 ty) const {
     return wide_ram16(L.table + (u32(block) * 4 + quarter) * 2);
 }
 
+// Battles draw their backdrop on BG0 and BG1 as two whole 512x256 pictures (screen blocks 26
+// and 28) that hardly scroll, with the text and name boxes on BG2 and BG3 (256x256, screen
+// blocks 30 and 31). The backdrop is complete in VRAM, so its sides show it wrapped as on
+// hardware; BG2 and BG3 are hidden at the sides. Any other layout keeps the sides black.
+void Gba::wide_battle_detect(u16 dispcnt) {
+    auto cnt = [&](int bg) { return u16(io_[0x08 + 2 * bg] | (io_[0x09 + 2 * bg] << 8)); };
+    auto is_backdrop = [&](int bg, u32 sbb) {
+        const u16 c = cnt(bg);
+        return ((c >> 8) & 31) == sbb && ((c >> 14) & 3) == 1 && !(c & 0x80);
+    };
+    if (!is_backdrop(0, 26) || !is_backdrop(1, 28) || !(dispcnt & 0x300)) return;
+    if (((cnt(2) >> 8) & 31) != 30 || ((cnt(3) >> 8) & 31) != 31) return;
+    wide_scene_ = true;
+    for (int bg = 0; bg < 4; ++bg) wide_level_[bg].mode = bg < 2 ? WideMode::Vram : WideMode::Hide;
+}
+
 void Gba::wide_level_detect() {
     for (auto& L : wide_level_) L = WideLevel{};
     wide_scene_ = false;
@@ -70,8 +86,11 @@ void Gba::wide_level_detect() {
     const u16 dispcnt = u16(io_[0] | (io_[1] << 8));
     if ((dispcnt & 7) != 0) return;
     // The struct has sat at the same address in every field scene seen so far; if it is not
-    // there, nothing widens.
-    if (wide_ram32(kField + 0x08) != kFieldTag) return;
+    // there, this is not the field (maybe a battle).
+    if (wide_ram32(kField + 0x08) != kFieldTag) {
+        wide_battle_detect(dispcnt);
+        return;
+    }
     const u32 maps = wide_ram32(kField + kMaps), table = wide_ram32(kField + kTable);
     if (!in_ewram(maps) || !in_ewram(table)) return;
 
