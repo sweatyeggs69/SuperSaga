@@ -133,11 +133,10 @@ void display_tab(Config& config) {
             }
             ImGui::EndCombo();
         }
-        help_marker("Shows more of the level at the left and right instead of stretching the "
-                    "picture. Pixels always stay square, and the HUD stays where it was. Menus "
-                    "and the title screen stay 3:2. Wider shapes are not offered: the game stops "
-                    "drawing enemies a little past the original view, so they would pop in "
-                    "at the sides.");
+        help_marker("Shows more of the room at the left and right instead of stretching the "
+                    "picture. Pixels always stay square, and text boxes stay where they were. "
+                    "Screens without a scrolling room behind them, like menus and the title "
+                    "screen, stay 3:2, and past the edge of a room the sides are black.");
     }
 
     bool fullscreen = config.get("display.fullscreen", "0") == "1";
