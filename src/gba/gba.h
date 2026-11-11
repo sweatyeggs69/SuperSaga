@@ -194,8 +194,7 @@ private:
     void apu_timer_overflow(int timer);
     void apu_frame_sequencer();
     void apu_sample();
-    s32 fifo_out16(int f) const;
-    s32 fifo_filtered16(int f);
+    float fifo_resampled(int f);
     void apu_trigger(int ch);
 
     // ---- BIOS HLE (bios.cpp) ---------------------------------------------------------------
@@ -328,19 +327,25 @@ private:
         std::array<s8, 32> data{};
         u32 read = 0, size = 0;
         s8 latch = 0;
-        // For output: the sample before latch, and how far playback has moved from it toward
-        // latch (cycles since the timer took latch, out of the timer period). Output samples
-        // interpolate between the two instead of holding each one, which keeps the images of
-        // low-rate DMA sound (~15.7 kHz here) from showing up as hiss in the 32 kHz output.
-        s8 prev = 0;
-        u32 since = 0, period = 1;
-        // Low-pass (Butterworth biquad, cutoff 0.45 x the DMA sound's rate) for what is left of
-        // those images; coefficients follow the timer period they were made for.
-        float x1 = 0, x2 = 0, y1 = 0, y2 = 0;
-        float b0 = 1, b1 = 0, a1 = 0, a2 = 0;
-        u32 coef_period = 0;
     };
     std::array<Fifo, 2> fifo_{};
+    // Output resampling for each FIFO. Not part of save states (only the sound of the next few
+    // samples depends on it), so states keep loading across builds that change it. DMA sound runs
+    // at the game's own rate (~15.7 kHz here); holding each sample into the 32 kHz output lets
+    // its images above that rate's Nyquist limit through as hiss. Instead the output is
+    // band-limited: a windowed sinc over the last kFifoTaps samples, cut off just below the
+    // Nyquist limit, so the treble stays and the images go.
+    static constexpr int kFifoTaps = 32;
+    static constexpr int kFifoPhases = 256;
+    struct FifoOut {
+        std::array<s8, kFifoTaps> hist{};  // newest at hist[(pos + kFifoTaps - 1) % kFifoTaps]
+        u32 pos = 0;
+        u32 since = 0, period = 1;  // cycles since the newest sample started, and the sample period
+        // Filter taps per phase (kFifoPhases + 1 rows, normalized), made for table_period.
+        std::vector<float> table;
+        u32 table_period = 0;
+    };
+    std::array<FifoOut, 2> fifo_out_{};
     u32 apu_sample_acc_ = 0;
     u32 apu_seq_acc_ = 0;
     u32 apu_seq_step_ = 0;

@@ -237,6 +237,7 @@ bool Gba::load_state(const std::vector<u8>& data, std::string* error) {
     cycles_ = 0;
     frame_done_ = false;
     audio_.clear();
+    fifo_out_ = {};
     sram_dirty_ = false;  // the save file is updated the next time the game writes SRAM
     sram_dirty_frames_ = 0;
     wide_level_ = {};

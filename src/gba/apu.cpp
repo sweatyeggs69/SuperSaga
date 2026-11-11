@@ -20,6 +20,7 @@ void Gba::apu_reset() {
     noise_ = {};
     wave_ram_.fill(0);
     fifo_ = {};
+    fifo_out_ = {};
     apu_sample_acc_ = 0;
     apu_seq_acc_ = 0;
     apu_seq_step_ = 0;
@@ -51,14 +52,16 @@ void Gba::apu_timer_overflow(int timer) {
         Fifo& q = fifo_[f];
         const u16 tc = timer_[timer].control;
         static constexpr u32 kPrescale[4] = {1, 64, 256, 1024};
-        q.period = (0x10000u - timer_[timer].reload) * kPrescale[tc & 3];
-        q.since = 0;
-        q.prev = q.latch;
         if (q.size) {
             q.latch = q.data[q.read];
             q.read = (q.read + 1) % 32;
             --q.size;
         }
+        FifoOut& o = fifo_out_[f];
+        o.period = (0x10000u - timer_[timer].reload) * kPrescale[tc & 3];
+        o.since = 0;
+        o.hist[o.pos] = q.latch;
+        o.pos = (o.pos + 1) % kFifoTaps;
         if (q.size <= 16) dma_fifo_request(f);
     }
 }
@@ -196,37 +199,41 @@ void Gba::apu_frame_sequencer() {
     }
 }
 
-// FIFO f's output in 1/16 sample steps, moving linearly from the previous sample to the latched
-// one over one timer period.
-s32 Gba::fifo_out16(int f) const {
-    const Fifo& q = fifo_[f];
-    const u32 t = std::min(q.since, q.period);
-    return s32(q.prev) * 16 + s32((s64(q.latch) - q.prev) * 16 * s64(t) / s64(std::max<u32>(q.period, 1)));
-}
-
-// fifo_out16() through the FIFO's low-pass. Called once per output sample.
-s32 Gba::fifo_filtered16(int f) {
-    Fifo& q = fifo_[f];
-    const float x = float(fifo_out16(f));
-    if (q.coef_period != q.period) {
-        q.coef_period = q.period;
-        const double rate = double(kCpuHz) / std::max<u32>(q.period, 1);
-        const double fc = 0.45 * rate, fs = double(kAudioRate);
-        if (fc >= 0.45 * fs) {  // nothing to remove below the output's own Nyquist limit
-            q.b0 = 1; q.b1 = 0; q.a1 = 0; q.a2 = 0;
-        } else {
-            const double w = 2 * 3.14159265358979323846 * fc / fs, alpha = std::sin(w) / std::sqrt(2.0);
-            const double c = std::cos(w), a0 = 1 + alpha;
-            q.b0 = float((1 - c) / 2 / a0);
-            q.b1 = float((1 - c) / a0);
-            q.a1 = float(-2 * c / a0);
-            q.a2 = float((1 - alpha) / a0);
+// FIFO f's band-limited output (in sample units) at the current time, kFifoTaps / 2 samples
+// behind the newest one (about 1 ms at 15.7 kHz).
+float Gba::fifo_resampled(int f) {
+    FifoOut& o = fifo_out_[f];
+    const u32 period = std::max<u32>(o.period, 1);
+    constexpr int kHalf = kFifoTaps / 2;
+    if (o.table_period != period || o.table.empty()) {
+        // Hann-windowed sinc, cut off just below the DMA sound's Nyquist limit (or the output's,
+        // when the DMA sound runs faster than 32 kHz).
+        o.table_period = period;
+        o.table.assign(size_t(kFifoPhases + 1) * kFifoTaps, 0.0f);
+        const double rate = double(kCpuHz) / period;
+        const double fc = 0.94 * std::min(1.0, double(kAudioRate) / rate);
+        constexpr double kPi = 3.14159265358979323846;
+        for (int ph = 0; ph <= kFifoPhases; ++ph) {
+            const double frac = double(ph) / kFifoPhases;
+            double norm = 0;
+            float* row = &o.table[size_t(ph) * kFifoTaps];
+            for (int k = 0; k < kFifoTaps; ++k) {
+                // k = 0 is the oldest sample; u is its distance in samples from the output point.
+                const double u = double(k) - (double(kFifoTaps - 1 - kHalf) + frac);
+                const double x = kPi * fc * u;
+                const double sinc = std::fabs(x) < 1e-9 ? 1.0 : std::sin(x) / x;
+                const double w = std::fabs(u) >= kHalf ? 0.0 : 0.5 + 0.5 * std::cos(kPi * u / kHalf);
+                row[k] = float(sinc * w);
+                norm += sinc * w;
+            }
+            for (int k = 0; k < kFifoTaps; ++k) row[k] = float(row[k] / norm);
         }
     }
-    const float y = q.b0 * (x + q.x2) + q.b1 * q.x1 - q.a1 * q.y1 - q.a2 * q.y2;
-    q.x2 = q.x1; q.x1 = x;
-    q.y2 = q.y1; q.y1 = y;
-    return s32(std::lround(y));
+    const u32 ph = u32(u64(std::min(o.since, period)) * kFifoPhases / period);
+    const float* row = &o.table[size_t(ph) * kFifoTaps];
+    float acc = 0;
+    for (int k = 0; k < kFifoTaps; ++k) acc += row[k] * float(o.hist[(o.pos + u32(k)) % kFifoTaps]);
+    return acc;
 }
 
 void Gba::apu_sample() {
@@ -286,7 +293,7 @@ void Gba::apu_sample() {
         }
     }
 
-    const s32 fifo_a = fifo_filtered16(0), fifo_b = fifo_filtered16(1);
+    const s32 fifo_a = s32(std::lround(fifo_resampled(0) * 16)), fifo_b = s32(std::lround(fifo_resampled(1) * 16));
     s32 left = 0, right = 0;
     if (io_[0x84] & 0x80) {
         u16 cntl = rd16(io_, 0x80), cnth = rd16(io_, 0x82);
@@ -324,7 +331,7 @@ void Gba::apu_advance(u32 cycles) {
         apu_seq_acc_ -= 32768;
         apu_frame_sequencer();
     }
-    for (Fifo& q : fifo_) q.since = std::min<u32>(q.since + cycles, 0x10000000u);
+    for (FifoOut& o : fifo_out_) o.since = std::min<u32>(o.since + cycles, 0x10000000u);
     apu_sample_acc_ += cycles;
     while (apu_sample_acc_ >= 512) {
         apu_sample_acc_ -= 512;
