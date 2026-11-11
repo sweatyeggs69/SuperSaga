@@ -487,7 +487,11 @@ void draw_page(PanelState& st, const Page& page) {
     const auto& c = theme::palette();
     constexpr float kPadX = 32.0f, kPadTop = 26.0f;
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-    const bool pane = ImGui::BeginChild("page", ImVec2(0, 0), ImGuiChildFlags_NavFlattened,
+    // Not NavFlattened: Up and Down stay on the page. ImGui scores an item that is both beside
+    // and slightly above or below as almost straight up or down, so from the edge of a card it
+    // would pick a sidebar entry over the next card's first control. The sidebar is reached with
+    // Left or B instead (update_focus_hops).
+    const bool pane = ImGui::BeginChild("page", ImVec2(0, 0), ImGuiChildFlags_None,
                                         ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
     ImGui::PopStyleVar();
     if (pane) {
@@ -504,8 +508,8 @@ void draw_page(PanelState& st, const Page& page) {
         ImGui::SetCursorPosX(kPadX);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
         ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, 8.0f);
-        // NavFlattened (here, on the page and the sidebar): the d-pad moves straight from the
-        // sidebar into the settings without having to "enter" each panel first.
+        // NavFlattened (here and on each card): the d-pad moves straight through the cards
+        // without having to "enter" each one first.
         const bool body = ImGui::BeginChild("body", ImVec2(-14.0f, -16.0f), ImGuiChildFlags_NavFlattened);
         ImGui::PopStyleVar(2);
         if (body) {
