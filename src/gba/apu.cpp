@@ -2,8 +2,6 @@
 // Mixed to stereo s16 at 32768 Hz.
 #include "gba.h"
 
-#include <cmath>
-
 #include <algorithm>
 
 namespace supersaga::gba {
@@ -20,7 +18,6 @@ void Gba::apu_reset() {
     noise_ = {};
     wave_ram_.fill(0);
     fifo_ = {};
-    fifo_out_ = {};
     apu_sample_acc_ = 0;
     apu_seq_acc_ = 0;
     apu_seq_step_ = 0;
@@ -50,18 +47,11 @@ void Gba::apu_timer_overflow(int timer) {
         int sel = (cnth >> (f ? 14 : 10)) & 1;
         if (sel != timer) continue;
         Fifo& q = fifo_[f];
-        const u16 tc = timer_[timer].control;
-        static constexpr u32 kPrescale[4] = {1, 64, 256, 1024};
         if (q.size) {
             q.latch = q.data[q.read];
             q.read = (q.read + 1) % 32;
             --q.size;
         }
-        FifoOut& o = fifo_out_[f];
-        o.period = (0x10000u - timer_[timer].reload) * kPrescale[tc & 3];
-        o.since = 0;
-        o.hist[o.pos] = q.latch;
-        o.pos = (o.pos + 1) % kFifoTaps;
         if (q.size <= 16) dma_fifo_request(f);
     }
 }
@@ -199,101 +189,58 @@ void Gba::apu_frame_sequencer() {
     }
 }
 
-// FIFO f's band-limited output (in sample units) at the current time, kFifoTaps / 2 samples
-// behind the newest one (about 1 ms at 15.7 kHz).
-float Gba::fifo_resampled(int f) {
-    FifoOut& o = fifo_out_[f];
-    const u32 period = std::max<u32>(o.period, 1);
-    constexpr int kHalf = kFifoTaps / 2;
-    if (o.table_period != period || o.table.empty()) {
-        // Hann-windowed sinc, cut off just below the DMA sound's Nyquist limit (or the output's,
-        // when the DMA sound runs faster than 32 kHz).
-        o.table_period = period;
-        o.table.assign(size_t(kFifoPhases + 1) * kFifoTaps, 0.0f);
-        const double rate = double(kCpuHz) / period;
-        const double fc = 0.94 * std::min(1.0, double(kAudioRate) / rate);
-        constexpr double kPi = 3.14159265358979323846;
-        for (int ph = 0; ph <= kFifoPhases; ++ph) {
-            const double frac = double(ph) / kFifoPhases;
-            double norm = 0;
-            float* row = &o.table[size_t(ph) * kFifoTaps];
-            for (int k = 0; k < kFifoTaps; ++k) {
-                // k = 0 is the oldest sample; u is its distance in samples from the output point.
-                const double u = double(k) - (double(kFifoTaps - 1 - kHalf) + frac);
-                const double x = kPi * fc * u;
-                const double sinc = std::fabs(x) < 1e-9 ? 1.0 : std::sin(x) / x;
-                const double w = std::fabs(u) >= kHalf ? 0.0 : 0.5 + 0.5 * std::cos(kPi * u / kHalf);
-                row[k] = float(sinc * w);
-                norm += sinc * w;
-            }
-            for (int k = 0; k < kFifoTaps; ++k) row[k] = float(row[k] / norm);
-        }
-    }
-    const u32 ph = u32(u64(std::min(o.since, period)) * kFifoPhases / period);
-    const float* row = &o.table[size_t(ph) * kFifoTaps];
-    float acc = 0;
-    for (int k = 0; k < kFifoTaps; ++k) acc += row[k] * float(o.hist[(o.pos + u32(k)) % kFifoTaps]);
-    return acc;
-}
-
 void Gba::apu_sample() {
-    // The PSG channels are stepped kSub times per output sample and averaged, so high notes and
-    // noise don't alias into hiss the way a single point sample per output sample would.
-    constexpr u32 kSub = 8;
-    s32 psg[4] = {0, 0, 0, 0};  // sums of kSub sub-samples
-    const u16 wcntl = rd16(io_, 0x70), wcnth = rd16(io_, 0x72);
-    const u16 nreg = rd16(io_, 0x7C);
-    for (u32 sub = 0; sub < kSub; ++sub) {
-        for (int ch = 0; ch < 2; ++ch) {
-            Square& s = sq_[ch];
-            u16 duty_reg = rd16(io_, ch == 0 ? 0x62 : 0x68);
-            u32 freq = rd16(io_, ch == 0 ? 0x64 : 0x6C) & 0x7FF;
-            s.phase = (s.phase + (2097152u / kSub / (2048 - freq))) % (8u << 16);
-            if (s.on) {
-                bool high = (s.phase >> 16) < kDuty[(duty_reg >> 6) & 3];
-                psg[ch] += high ? s32(s.volume) : -s32(s.volume);
-            }
-        }
-        {
-            u32 freq = rd16(io_, 0x74) & 0x7FF;
-            bool two_banks = wcntl & 0x20;
-            u32 len = two_banks ? 64 : 32;
-            wave_.phase = (wave_.phase + (4194304u / kSub / (2048 - freq))) % (len << 16);
-            if (wave_.on) {
-                u32 pos = wave_.phase >> 16;
-                u32 bank = two_banks ? 0 : ((wcntl & 0x40) ? 16 : 0);
-                if (two_banks && (wcntl & 0x40)) pos = (pos + 32) % 64;
-                u8 byte = wave_ram_[(bank + pos / 2) % 32];
-                s32 nib = (pos & 1) ? (byte & 15) : (byte >> 4);
-                s32 val = nib * 2 - 15;
-                if (wcnth & 0x8000) val = val * 3 / 4;
-                else switch ((wcnth >> 13) & 3) {
-                    case 0: val = 0; break;
-                    case 1: break;
-                    case 2: val /= 2; break;
-                    case 3: val /= 4; break;
-                }
-                psg[2] += val;
-            }
-        }
-        {
-            u32 r = nreg & 7, sh = (nreg >> 4) & 15;
-            u32 period = (r ? 32 * r : 16) << (sh + 1);
-            noise_.acc += 512 / kSub;
-            u32 steps = 0;
-            while (noise_.acc >= period && steps < 512 / kSub) {
-                noise_.acc -= period;
-                u32 bit = (noise_.lfsr ^ (noise_.lfsr >> 1)) & 1;
-                noise_.lfsr = (noise_.lfsr >> 1) | (bit << 14);
-                if (nreg & 0x08) noise_.lfsr = (noise_.lfsr & ~0x40u) | (bit << 6);
-                ++steps;
-            }
-            if (steps == 512 / kSub) noise_.acc = 0;
-            if (noise_.on) psg[3] += (noise_.lfsr & 1) ? -s32(noise_.volume) : s32(noise_.volume);
+    s32 psg[4] = {0, 0, 0, 0};
+    for (int ch = 0; ch < 2; ++ch) {
+        Square& s = sq_[ch];
+        u16 duty_reg = rd16(io_, ch == 0 ? 0x62 : 0x68);
+        u32 freq = rd16(io_, ch == 0 ? 0x64 : 0x6C) & 0x7FF;
+        s.phase = (s.phase + (2097152u / (2048 - freq))) % (8u << 16);
+        if (s.on) {
+            bool high = (s.phase >> 16) < kDuty[(duty_reg >> 6) & 3];
+            psg[ch] = high ? s32(s.volume) : -s32(s.volume);
         }
     }
+    {
+        u16 cntl = rd16(io_, 0x70), cnth = rd16(io_, 0x72);
+        u32 freq = rd16(io_, 0x74) & 0x7FF;
+        bool two_banks = cntl & 0x20;
+        u32 len = two_banks ? 64 : 32;
+        wave_.phase = (wave_.phase + (4194304u / (2048 - freq))) % (len << 16);
+        if (wave_.on) {
+            u32 pos = wave_.phase >> 16;
+            u32 bank = two_banks ? 0 : ((cntl & 0x40) ? 16 : 0);
+            if (two_banks && (cntl & 0x40)) pos = (pos + 32) % 64;
+            u8 byte = wave_ram_[(bank + pos / 2) % 32];
+            s32 nib = (pos & 1) ? (byte & 15) : (byte >> 4);
+            s32 val = nib * 2 - 15;
+            if (cnth & 0x8000) val = val * 3 / 4;
+            else switch ((cnth >> 13) & 3) {
+                case 0: val = 0; break;
+                case 1: break;
+                case 2: val /= 2; break;
+                case 3: val /= 4; break;
+            }
+            psg[2] = val;
+        }
+    }
+    {
+        u16 reg = rd16(io_, 0x7C);
+        u32 r = reg & 7, s = (reg >> 4) & 15;
+        u32 period = (r ? 32 * r : 16) << (s + 1);
+        noise_.acc += 512;
+        u32 steps = 0;
+        while (noise_.acc >= period && steps < 512) {
+            noise_.acc -= period;
+            u32 bit = (noise_.lfsr ^ (noise_.lfsr >> 1)) & 1;
+            noise_.lfsr = (noise_.lfsr >> 1) | (bit << 14);
+            if (reg & 0x08) noise_.lfsr = (noise_.lfsr & ~0x40u) | (bit << 6);
+            ++steps;
+        }
+        if (steps == 512) noise_.acc = 0;
+        if (noise_.on) psg[3] = (noise_.lfsr & 1) ? -s32(noise_.volume) : s32(noise_.volume);
+    }
 
-    const s32 fifo_a = s32(std::lround(fifo_resampled(0) * 16)), fifo_b = s32(std::lround(fifo_resampled(1) * 16));
     s32 left = 0, right = 0;
     if (io_[0x84] & 0x80) {
         u16 cntl = rd16(io_, 0x80), cnth = rd16(io_, 0x82);
@@ -305,20 +252,19 @@ void Gba::apu_sample() {
         pl *= s32(1 + ((cntl >> 4) & 7));
         pr *= s32(1 + (cntl & 7));
         u32 psg_shift = 2 - std::min<u32>(2, cnth & 3);
-        left += (pl * s32(16 / kSub)) >> psg_shift;  // psg[] holds kSub sub-samples
-        right += (pr * s32(16 / kSub)) >> psg_shift;
-        s32 a = fifo_a * ((cnth & 4) ? 4 : 2);
-        s32 b = fifo_b * ((cnth & 8) ? 4 : 2);
+        left += pl >> psg_shift;
+        right += pr >> psg_shift;
+        s32 a = fifo_[0].latch * ((cnth & 4) ? 4 : 2);
+        s32 b = fifo_[1].latch * ((cnth & 8) ? 4 : 2);
         if (cnth & 0x0100) right += a;
         if (cnth & 0x0200) left += a;
         if (cnth & 0x1000) right += b;
         if (cnth & 0x2000) left += b;
     }
-    // Mixed in 1/16 steps of the hardware's 10-bit output, for the interpolated DMA sound.
-    s32 bias = (rd16(io_, 0x88) & 0x3FE) * 16;
+    s32 bias = rd16(io_, 0x88) & 0x3FE;
     auto out = [&](s32 v) {
-        s32 x = std::clamp(v + bias, 0, 0x3FF * 16) - 0x200 * 16;
-        return s16(std::clamp(x * 3, -32768, 32767));
+        s32 x = std::clamp(v + bias, 0, 0x3FF) - 0x200;
+        return s16(std::clamp(x * 48, -32768, 32767));
     };
     if (audio_.size() >= kMaxBufferedFrames * 2) audio_.erase(audio_.begin(), audio_.begin() + 2);
     audio_.push_back(out(left));
@@ -331,7 +277,6 @@ void Gba::apu_advance(u32 cycles) {
         apu_seq_acc_ -= 32768;
         apu_frame_sequencer();
     }
-    for (FifoOut& o : fifo_out_) o.since = std::min<u32>(o.since + cycles, 0x10000000u);
     apu_sample_acc_ += cycles;
     while (apu_sample_acc_ >= 512) {
         apu_sample_acc_ -= 512;
