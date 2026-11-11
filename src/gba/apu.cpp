@@ -93,8 +93,16 @@ void Gba::apu_trigger(int ch) {
 void Gba::apu_write(u32 reg, u16 v, u16 old) {
     (void)old;
     switch (reg) {
-        case 0x62: sq_[0].length = 64 - (v & 63); break;
-        case 0x68: sq_[1].length = 64 - (v & 63); break;
+        // Envelope registers: initial volume 0 with a falling envelope switches the channel's
+        // DAC off, which silences a playing channel at once (games use it to stop a sound).
+        case 0x62:
+            sq_[0].length = 64 - (v & 63);
+            if (!(v & 0xF800)) sq_[0].on = false;
+            break;
+        case 0x68:
+            sq_[1].length = 64 - (v & 63);
+            if (!(v & 0xF800)) sq_[1].on = false;
+            break;
         case 0x64:
         case 0x6C: {
             int ch = reg == 0x64 ? 0 : 1;
@@ -112,7 +120,10 @@ void Gba::apu_write(u32 reg, u16 v, u16 old) {
             if (v & 0x8000) apu_trigger(2);
             io_[reg + 1] &= 0x7F;
             break;
-        case 0x78: noise_.length = 64 - (v & 63); break;
+        case 0x78:
+            noise_.length = 64 - (v & 63);
+            if (!(v & 0xF800)) noise_.on = false;
+            break;
         case 0x7C:
             noise_.length_en = v & 0x4000;
             if (v & 0x8000) apu_trigger(3);
