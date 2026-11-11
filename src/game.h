@@ -41,9 +41,9 @@ inline constexpr const char* kSaveChip = "EEPROM";
 // holds zero bytes, so the length is explicit.
 inline constexpr std::string_view kSaveHeader{"\x00\x00" "GPRLAM", 8};
 
-// Widescreen needs per-game support in src/gba/wide_level.cpp; until then the option is hidden
-// and the picture stays 3:2.
-inline constexpr bool kWidescreen = false;
+// Widescreen view (16:10 and 16:9). The extra columns are rebuilt from the room layout in RAM by
+// src/gba/wide_level.cpp; false hides the option and keeps the picture 3:2.
+inline constexpr bool kWidescreen = true;
 
 // The brothers' stats and the coin count in EWRAM, used by the cheats menu. Checked on 2026-11-11
 // at the start of a new game (Mario HP 10/10, Luigi HP 12/12, BP 10/10, 0 coins) and matching

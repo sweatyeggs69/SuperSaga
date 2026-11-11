@@ -24,8 +24,8 @@ using s64 = std::int64_t;
 inline constexpr int kScreenWidth = 240;
 inline constexpr int kScreenHeight = 160;
 // Optional widescreen rendering: the PPU can draw extra columns on each side of the 240-pixel
-// view (whatever the game left in VRAM/OAM there). 22 per side gives a 284-pixel (16:9) line;
-// wider is not useful because the game stops drawing objects about 32 pixels past the view.
+// view (rebuilt from the room in RAM by wide_level.cpp). 22 per side gives a 284-pixel (16:9)
+// line, the widest shape the settings offer.
 inline constexpr int kMaxWideMargin = 22;
 inline constexpr int kMaxLineWidth = kScreenWidth + 2 * kMaxWideMargin;
 inline constexpr int kAudioRate = 32768;
@@ -180,6 +180,7 @@ private:
     void ppu_render_text_bg(int bg, int y, u16* color, u8* opaque);
     // Widescreen level reconstruction (wide_level.cpp, specific to this game).
     void wide_level_detect();
+    void wide_battle_detect(u16 dispcnt);  // part of wide_level_detect: battle backdrops
     u16 wide_level_entry(int bg, s32 tx, s32 ty) const;  // entry of wide_level_[bg] at level tile (tx, ty)
     u16 wide_ram16(u32 a) const;
     u32 wide_ram32(u32 a) const;
@@ -288,7 +289,9 @@ private:
     struct WideLevel {
         WideMode mode = WideMode::Vram;
         int layer = 0;                 // the game's own layer index for this BG
-        u32 map = 0;
+        u32 map = 0;                   // block maps (all layers)
+        u32 table = 0;                 // block -> tilemap entries
+        s32 stride = 0;                // block map row stride
         s32 width = 0, height = 0;     // in the layout's own units
         s32 tiles_w = 0, tiles_h = 0;  // 8x8 tiles
         s32 cam_x = 0, cam_y = 0;      // offset to add to HOFS/VOFS for absolute level pixels
