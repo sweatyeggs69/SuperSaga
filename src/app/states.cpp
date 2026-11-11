@@ -245,7 +245,7 @@ bool write_png(const fs::path& path, const std::uint16_t* px) {
 
 }  // namespace
 
-std::string slot_name(int slot) { return slot == kAutoSlot ? "Auto" : "Slot " + std::to_string(slot); }
+std::string slot_name(int slot) { return "Slot " + std::to_string(slot); }
 
 std::string format_playtime(std::uint64_t frames) {
     std::uint64_t secs = frames * 280896ull / 16777216ull;
@@ -259,10 +259,49 @@ Store::Store(fs::path dir, std::string rom_sha1, fs::path sav_path)
     : dir_(std::move(dir)), sha1_(std::move(rom_sha1)), sav_(std::move(sav_path)) {
     std::error_code ec;
     fs::create_directories(dir_, ec);
+    shifted_ = migrate_auto_slot(dir_, "ssst");
+}
+
+int migrate_auto_slot(const fs::path& dir, const std::string& ext) {
+    std::error_code ec;
+    const fs::path legacy = dir / ("auto." + ext);
+    if (!fs::exists(legacy, ec)) return 0;
+    auto path = [&](const std::string& stem, const char* e) { return dir / (stem + e); };
+    auto slot_stem = [](int s) { return "slot-" + std::to_string(s); };
+    const std::string main_ext = "." + ext;
+    const char* exts[] = {main_ext.c_str(), ".png", ".bak"};
+    // Moves one state and its thumbnail / backup; a companion file the source lacks is cleared at
+    // the destination so it can't end up attached to the wrong state.
+    auto move = [&](const std::string& from, const std::string& to) {
+        for (const char* e : exts) {
+            std::error_code mec;
+            if (fs::exists(path(from, e), mec)) fs::rename(path(from, e), path(to, e), mec);
+            else fs::remove(path(to, e), mec);
+        }
+    };
+    int gap = 1;
+    while (gap <= kSlots && fs::exists(path(slot_stem(gap), main_ext.c_str()), ec)) ++gap;
+    if (gap > kSlots) {  // every slot is full: the last one makes way (recoverable from the Trash)
+        gap = kSlots;
+        for (const char* e : exts)
+            if (fs::exists(path(slot_stem(gap), e), ec)) move_to_trash(path(slot_stem(gap), e));
+    }
+    for (int s = gap - 1; s >= 1; --s) move(slot_stem(s), slot_stem(s + 1));
+    move("auto", slot_stem(1));
+    return gap - 1;
+}
+
+int Store::latest() {
+    int best = -1;
+    for (int s = kFirstSlot; s <= kSlots; ++s) {
+        const SlotInfo& i = info(s);
+        if (i.exists && i.error.empty() && (best < 0 || i.saved_at > info(best).saved_at)) best = s;
+    }
+    return best;
 }
 
 fs::path Store::file(int slot) const {
-    return dir_ / (slot == kAutoSlot ? std::string("auto.ssst") : "slot-" + std::to_string(slot) + ".ssst");
+    return dir_ / ("slot-" + std::to_string(slot) + ".ssst");
 }
 
 void Store::refresh() { cache_valid_ = false; }
@@ -270,7 +309,7 @@ void Store::refresh() { cache_valid_ = false; }
 const SlotInfo& Store::info(int slot) {
     if (!cache_valid_) {
         cache_.assign(kSlots + 1, SlotInfo{});
-        for (int s = 0; s <= kSlots; ++s) {
+        for (int s = kFirstSlot; s <= kSlots; ++s) {
             SlotInfo& i = cache_[size_t(s)];
             i.slot = s;
             Bytes data;
@@ -289,14 +328,14 @@ const SlotInfo& Store::info(int slot) {
         }
         cache_valid_ = true;
     }
-    return cache_[size_t(std::clamp(slot, 0, kSlots))];
+    return cache_[size_t(std::clamp(slot, kFirstSlot, kSlots))];
 }
 
 bool Store::save(int slot, const gba::Gba& g, std::string* error, const std::string& label) {
     std::error_code ec;
     fs::path f = file(slot);
     std::string keep_label = label;
-    if (keep_label.empty() && slot != kAutoSlot) {
+    if (keep_label.empty()) {
         const SlotInfo& old = info(slot);
         if (old.exists && old.error.empty()) keep_label = old.label;
     }

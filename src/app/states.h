@@ -1,5 +1,5 @@
 #pragma once
-// Save state slots: <pref>/states/<rom sha1>/{slot-1..10,auto}.ssst with a .png thumbnail next to
+// Save state slots: <pref>/states/<rom sha1>/slot-1..10.ssst with a .png thumbnail next to
 // each. A .ssst holds a small header (ROM SHA-1, build, time, playtime, label), a 240x160
 // thumbnail and the compressed emulator state. No SDL dependency.
 
@@ -18,7 +18,7 @@ class Gba;
 namespace supersaga::states {
 
 inline constexpr int kSlots = 10;
-inline constexpr int kAutoSlot = 0;  // slot 0 is the automatic one ("auto.ssst")
+inline constexpr int kFirstSlot = 1;  // slots are numbered 1..kSlots
 
 struct SlotInfo {
     int slot = 0;
@@ -30,13 +30,21 @@ struct SlotInfo {
     std::vector<std::uint16_t> thumb;  // 240x160 BGR555, empty if none
 };
 
-std::string slot_name(int slot);  // "Auto" or "Slot 3"
+std::string slot_name(int slot);  // "Slot 3"
 std::string format_playtime(std::uint64_t frames);
 
 class Store {
 public:
-    // dir = <pref>/states/<rom sha1>
+    // dir = <pref>/states/<rom sha1>. Moves a state left in the old Auto slot into Slot 1 (see
+    // migrate_auto_slot).
     Store(std::filesystem::path dir, std::string rom_sha1, std::filesystem::path sav_path);
+
+    // How many numbered slots moved up by one when the old Auto state was moved into Slot 1
+    // (0 if there was nothing to move). Slots 1..shifted() are now 2..shifted()+1.
+    int shifted() const { return shifted_; }
+
+    // The usable slot saved most recently, or -1 if none. Continue and auto-load use it.
+    int latest();
 
     const std::filesystem::path& dir() const { return dir_; }
     std::filesystem::path file(int slot) const;
@@ -64,27 +72,33 @@ private:
     std::filesystem::path sav_;
     std::vector<SlotInfo> cache_;
     bool cache_valid_ = false;
+    int shifted_ = 0;
     std::optional<std::vector<std::uint8_t>> undo_;
 };
 
+// States from before the Auto slot was removed: if <dir>/auto.<ext> exists it becomes Slot 1.
+// Slots 1, 2, ... up to the first empty one each move up by one to make room; if all kSlots are
+// full, the last one goes to the Trash. Returns how many numbered slots moved (0 if no Auto state).
+int migrate_auto_slot(const std::filesystem::path& dir, const std::string& ext);
+
 // What to do when the app starts. With "Auto-load save state on launch" (states.autoload) on,
-// opening SuperSaga goes straight into the game: into the Auto state if there is one, otherwise a
-// normal boot. An Auto state that can't be used (other ROM, other build, damaged) shows the
-// launcher with an explanation. Shift held at launch shows the launcher once.
-enum class Startup { Launcher, BootGame, ResumeAuto, LauncherWithError };
-inline Startup choose_startup(bool rom_ok, bool play_flag, bool autoload, bool auto_exists, bool auto_usable,
+// opening SuperSaga goes straight into the game: into the most recent save state if there is one,
+// otherwise a normal boot. If states exist but none can be used (other ROM, other build, damaged)
+// the launcher shows with an explanation. Shift held at launch shows the launcher once.
+enum class Startup { Launcher, BootGame, Resume, LauncherWithError };
+inline Startup choose_startup(bool rom_ok, bool play_flag, bool autoload, bool any_state, bool usable_state,
                               bool shift) {
     if (!rom_ok) return (play_flag || autoload) ? Startup::LauncherWithError : Startup::Launcher;
     if (shift) return Startup::Launcher;
     if (autoload) {
-        if (!auto_exists) return Startup::BootGame;
-        return auto_usable ? Startup::ResumeAuto : Startup::LauncherWithError;
+        if (usable_state) return Startup::Resume;
+        return any_state ? Startup::LauncherWithError : Startup::BootGame;
     }
     return play_flag ? Startup::BootGame : Startup::Launcher;
 }
 
 // The empty numbered slot that "Save to new slot" uses: the first one after `current`, wrapping
-// around 1..kSlots. used[i] says whether slot i (1-based; index 0 is Auto and ignored) holds a
+// around 1..kSlots. used[i] says whether slot i (1-based; index 0 is unused) holds a
 // state. Returns -1 when every numbered slot is taken.
 inline int next_free_slot(const std::vector<bool>& used, int current) {
     for (int k = 1; k <= kSlots; ++k) {
@@ -94,14 +108,13 @@ inline int next_free_slot(const std::vector<bool>& used, int current) {
     return -1;
 }
 
-// The slot the quick save / quick load shortcuts use until the user picks another one: Auto.
-// Numbered slots are only used when chosen by hand.
-inline constexpr int kDefaultSlot = kAutoSlot;
+// The slot the quick save / quick load shortcuts (and the save on quit) use until the user picks
+// another one.
+inline constexpr int kDefaultSlot = kFirstSlot;
 
-// Previous / next slot (F6 / F7): cycles Auto, 1..kSlots, then back to Auto.
+// Previous / next slot (F6 / F7): cycles 1..kSlots, then back to 1.
 inline int step_slot(int current, int delta) {
-    int n = kSlots + 1;
-    return ((current + delta) % n + n) % n;
+    return ((current - 1 + delta) % kSlots + kSlots) % kSlots + 1;
 }
 
 // What the Save state shortcut does (states.quick_save): overwrite the current slot, or save
