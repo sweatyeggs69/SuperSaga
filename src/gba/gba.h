@@ -194,6 +194,8 @@ private:
     void apu_timer_overflow(int timer);
     void apu_frame_sequencer();
     void apu_sample();
+    s32 fifo_out16(int f) const;
+    s32 fifo_filtered16(int f);
     void apu_trigger(int ch);
 
     // ---- BIOS HLE (bios.cpp) ---------------------------------------------------------------
@@ -326,6 +328,17 @@ private:
         std::array<s8, 32> data{};
         u32 read = 0, size = 0;
         s8 latch = 0;
+        // For output: the sample before latch, and how far playback has moved from it toward
+        // latch (cycles since the timer took latch, out of the timer period). Output samples
+        // interpolate between the two instead of holding each one, which keeps the images of
+        // low-rate DMA sound (~15.7 kHz here) from showing up as hiss in the 32 kHz output.
+        s8 prev = 0;
+        u32 since = 0, period = 1;
+        // Low-pass (Butterworth biquad, cutoff 0.45 x the DMA sound's rate) for what is left of
+        // those images; coefficients follow the timer period they were made for.
+        float x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+        float b0 = 1, b1 = 0, a1 = 0, a2 = 0;
+        u32 coef_period = 0;
     };
     std::array<Fifo, 2> fifo_{};
     u32 apu_sample_acc_ = 0;
