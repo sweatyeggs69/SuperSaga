@@ -33,7 +33,7 @@ Get the latest version from the [Releases page](https://github.com/sweatyeggs69/
 - **Themed launcher** with **Continue** to pick up where you left off.
 - **One settings menu (F1)** for display (scaling, screen effects) and controls.
 - **Controllers and remapping** for keyboard and gamepads.
-- **Save states**: ten slots plus Auto, with thumbnails, quick save/load and optional auto-load.
+- **Save states**: ten slots with thumbnails, quick save/load (Slot 1 by default) and optional auto-load.
 - **Cheats** (F1 > Cheats): infinite HP and BP for both brothers, and max coins. Off in RetroAchievements hardcore mode.
 - **Import saves** from RetroArch, mGBA, VBA-M and others.
 - **RetroAchievements**, optional.
