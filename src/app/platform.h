@@ -36,11 +36,13 @@ struct ShortcutResult {
     std::string message;
     std::filesystem::path path;
 };
-// One fixed shortcut per place:
-//   macOS:   "<~/Applications | ~/Desktop>/<game::kFileSafeTitle>.app" (tiny bundle, marked
-//            with CFBundleIdentifier tech.mcclain.supersaga.shortcut, running this app with --play)
+// One fixed shortcut per place, named and drawn like the app (SuperSaga, with its icon):
+//   macOS:   "<~/Applications | ~/Desktop>/SuperSaga.app" (tiny bundle, marked with
+//            CFBundleIdentifier tech.mcclain.supersaga.shortcut, running this app with --play)
 //   Linux:   supersaga-play.desktop in ~/.local/share/applications or ~/Desktop
-//   Windows: not yet implemented (will be a fixed-name .lnk)
+//   Windows: "SuperSaga.lnk" on the Desktop or in the Start menu Programs folder
+// Older builds named the macOS/Windows shortcut after the game (<game::kFileSafeTitle>); such a
+// shortcut counts as ours and is moved to the Trash when the new one is created or removed.
 std::filesystem::path shortcut_path(ShortcutPlace place);
 ShortcutState shortcut_state(ShortcutPlace place);
 // Creates the shortcut, or updates ours in place to point at the running app. If a same-named
