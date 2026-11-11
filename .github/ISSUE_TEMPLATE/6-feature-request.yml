@@ -1,0 +1,45 @@
+name: Feature request
+description: Suggest a new feature or an improvement to SuperSaga.
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        SuperSaga plays only your own copy of Mario & Luigi: Superstar Saga (USA). Requests to bundle the game or a BIOS, support downloading them, or add other games can't be accepted. Please don't attach game screenshots unless the idea can't be shown any other way.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Display (scaling, widescreen, colors, blending, overlays)
+        - Controls and gamepads
+        - Saves and save states
+        - RetroAchievements
+        - Launcher and settings menu
+        - Updates and installing
+        - Linux, macOS or Windows integration
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: What would you like, and why?
+      description: The problem it solves or what it would let you do.
+    validations:
+      required: true
+
+  - type: textarea
+    id: idea
+    attributes:
+      label: How could it work?
+      description: Where the option would live (for example a new setting in F1 > Display), and how you'd use it.
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Anything you do today instead?
+      description: Workarounds, or how another emulator or port handles this.

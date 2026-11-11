@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: FAQ and getting started
+    url: https://github.com/sweatyeggs69/SuperSaga#faq
+    about: Supported ROM, BIOS, where saves live, and first-launch steps for each system.
+  - name: Latest release
+    url: https://github.com/sweatyeggs69/SuperSaga/releases/latest
+    about: Check that you are on the newest version before reporting a problem.

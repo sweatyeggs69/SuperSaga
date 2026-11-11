@@ -1,0 +1,135 @@
+name: RetroAchievements
+description: Signing in, achievements not unlocking, hardcore mode, leaderboards or unlock pop-ups.
+title: "[RetroAchievements]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **Never post your RetroAchievements password or token**, anywhere in this form, in logs or in screenshots. SuperSaga stores only a sign-in token (macOS Keychain, Windows Credential Manager, or the `retroachievements.token` file on Linux). Don't attach that file. If you posted it by accident, sign out in SuperSaga and change your password on retroachievements.org.
+
+        Your RetroAchievements user name is fine to share.
+
+        Notes:
+        - Hardcore mode turns off loading save states, and turning it on mid-game restarts the game. That is expected.
+        - On macOS, the Mac may ask for your password to let SuperSaga read its saved sign-in after an update. That is expected.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you report
+      options:
+        - label: I am on the [latest release](https://github.com/sweatyeggs69/SuperSaga/releases/latest).
+          required: true
+        - label: My ROM shows as verified in Settings (F1) > Game.
+          required: true
+        - label: I have not included my password or token anywhere in this issue.
+          required: true
+
+  - type: dropdown
+    id: problem
+    attributes:
+      label: What goes wrong?
+      options:
+        - I can't sign in
+        - I'm signed out every time I open SuperSaga, or asked for my password again
+        - The game isn't recognized
+        - An achievement didn't unlock
+        - Hardcore unlocks are refused
+        - Leaderboard submissions
+        - Unlock or progress pop-ups (missing, wrong, or in the way)
+        - Rich presence
+        - Something else
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: The exact message SuperSaga showed in Settings (F1) > Achievements or in a pop-up (copy the text).
+    validations:
+      required: true
+
+  - type: input
+    id: achievement
+    attributes:
+      label: Achievement or leaderboard
+      description: Name, and a link to it on retroachievements.org if you have one.
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: What you did in the game
+      description: For an achievement that didn't unlock, what you did and where. Did you load a save state or import a save along the way?
+
+  - type: dropdown
+    id: mode
+    attributes:
+      label: Mode
+      options:
+        - Softcore (hardcore off)
+        - Hardcore
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - macOS
+        - Windows
+        - Linux
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: versions
+    attributes:
+      label: OS version and SuperSaga version
+      description: SuperSaga version is in Settings (F1) > About.
+      placeholder: "macOS 15.1, SuperSaga 1.0.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install
+    attributes:
+      label: How did you install SuperSaga?
+      options:
+        - GitHub Releases download
+        - RecompLauncher
+        - Built from source
+    validations:
+      required: true
+
+  - type: dropdown
+    id: network
+    attributes:
+      label: Network
+      description: Anything between SuperSaga and the internet?
+      multiple: true
+      options:
+        - Nothing special
+        - VPN
+        - Proxy
+        - Firewall or antivirus that filters apps
+        - School or work network
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log output
+      description: |
+        Start SuperSaga from a terminal, repeat the problem, and paste what it prints. **Check it for anything that looks like a token or password and remove it before posting.**
+        - **macOS:** `/Applications/SuperSaga.app/Contents/MacOS/SuperSaga --verbose`
+        - **Windows (PowerShell, in the .exe's folder):** `.\SuperSaga-<version>-Windows-x64.exe --verbose --console`
+        - **Linux:** `./SuperSaga-<version>-Linux-x64.AppImage --verbose`
+      render: text
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?

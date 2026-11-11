@@ -1,0 +1,118 @@
+{
+  "$schema": "https://recomplauncher.com/schema/recomplauncher.json",
+  "format": 1,
+  "name": "SuperSaga",
+  "repo": "sweatyeggs69/SuperSaga",
+  "game": {
+    "kind": "iso",
+    "label": "Your own Game Boy Advance ROM (.gba) of Mario & Luigi: Superstar Saga, USA release (AGB-A88E), revision 0.",
+    "dumps": [
+      { "name": "USA", "size": 16777216, "crc32": "E718D850" }
+    ]
+  },
+  "start": {
+    "program": ["SuperSaga.exe", "usr/bin/supersaga", "supersaga", "AppRun"],
+    "args": ["--game", "{game}"]
+  },
+  "prepare": {
+    "program": ["SuperSaga.exe", "usr/bin/supersaga", "supersaga", "AppRun"],
+    "args": ["--prepare", "--game", "{game}"],
+    "label": "Checking your ROM and setting it as SuperSaga's game",
+    "timeout": 60
+  },
+  "config": [
+    {
+      "id": "main",
+      "format": "ini",
+      "file": [
+        { "path": "{config}/SuperSaga/SuperSaga/settings.ini", "if": "{config}/Microsoft/Windows" },
+        { "path": "{local}/SuperSaga/SuperSaga/settings.ini" }
+      ],
+      "game_path": "rom.path"
+    }
+  ],
+  "folders": {
+    "saves": [
+      { "path": "{config}/SuperSaga/SuperSaga/saves", "if": "{config}/Microsoft/Windows" },
+      { "path": "{local}/SuperSaga/SuperSaga/saves" }
+    ]
+  },
+  "saves": [
+    "{config}/SuperSaga/SuperSaga/saves",
+    "{config}/SuperSaga/SuperSaga/states",
+    "{local}/SuperSaga/SuperSaga/saves",
+    "{local}/SuperSaga/SuperSaga/states"
+  ],
+  "exit_codes": {
+    "2": "SuperSaga couldn't find your ROM. Pick it again on the game's page.",
+    "3": "That ROM isn't the supported dump. SuperSaga needs Mario & Luigi: Superstar Saga (USA), revision 0."
+  },
+  "settings": [
+    {
+      "id": "window",
+      "label": "Window",
+      "help": "Start in a window or fill the screen. F11 switches in game.",
+      "choices": [
+        { "label": "Windowed", "set": { "display.fullscreen": "0" } },
+        { "label": "Fullscreen", "set": { "display.fullscreen": "1" } }
+      ],
+      "defaults": { "display.fullscreen": "0" }
+    },
+    {
+      "id": "scale",
+      "label": "Scaling",
+      "help": "Pixel perfect keeps every pixel the same size. Fit fills as much of the screen as it can.",
+      "choices": [
+        { "label": "Pixel perfect", "set": { "display.scale": "Integer" } },
+        { "label": "Fit", "set": { "display.scale": "Fit" } }
+      ],
+      "defaults": { "display.scale": "Integer" }
+    },
+    {
+      "id": "overlay",
+      "label": "Screen effect",
+      "help": "Lines over the picture, like the handheld's screen.",
+      "choices": [
+        { "label": "Off", "set": { "display.overlay": "Off" } },
+        { "label": "Grid", "set": { "display.overlay": "Grid" } },
+        { "label": "LCD", "set": { "display.overlay": "LCD" } },
+        { "label": "Scanlines", "set": { "display.overlay": "Scanlines" } }
+      ],
+      "defaults": { "display.overlay": "Off" }
+    },
+    {
+      "id": "color",
+      "label": "Colors",
+      "help": "Vivid shows the game's colors as drawn. GBA screen softens them like the original handheld.",
+      "choices": [
+        { "label": "Vivid", "set": { "display.color": "Raw" } },
+        { "label": "GBA screen", "set": { "display.color": "GBA LCD" } }
+      ],
+      "defaults": { "display.color": "Raw" }
+    },
+    {
+      "id": "blend",
+      "label": "Frame blending",
+      "help": "Mix smooths effects that flicker every other frame. Ghost adds the slow fade of the original screen.",
+      "choices": [
+        { "label": "Off", "set": { "display.blend": "Off" } },
+        { "label": "Mix", "set": { "display.blend": "Mix" } },
+        { "label": "Ghost", "set": { "display.blend": "Ghost" } }
+      ],
+      "defaults": { "display.blend": "Off" }
+    },
+    {
+      "id": "sound",
+      "label": "Sound",
+      "in": "args",
+      "help": "Mute starts the game with no sound and leaves your other settings alone.",
+      "choices": [
+        { "label": "On", "args": [] },
+        { "label": "Muted", "args": ["--mute"] }
+      ]
+    }
+  ],
+  "actions": [
+    { "id": "saves", "label": "Saves", "help": "Your in-game save and save states.", "open": "saves" }
+  ]
+}

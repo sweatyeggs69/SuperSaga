@@ -1,0 +1,241 @@
+name: Build
+
+on:
+  # Builds run only for releases (pushing a v* tag) or by hand from the Actions tab
+  # ("Run workflow"). Commits and pull requests are tested locally and do not build here.
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# No ROM, BIOS or game data is available in CI; tests that need them skip themselves.
+
+jobs:
+  macos:
+    name: macOS (universal)
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/cache@v5
+        with:
+          path: .deps
+          key: deps-macos-${{ hashFiles('CMakeLists.txt') }}
+      - name: Tools
+        run: brew list ninja >/dev/null 2>&1 || brew install ninja
+      - name: Configure
+        run: >
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          -DFETCHCONTENT_BASE_DIR="$GITHUB_WORKSPACE/.deps"
+          -DSUPERSAGA_MACOS_BUNDLE=ON -DSUPERSAGA_VENDOR_SDL=ON -DSUPERSAGA_BUILD_TOOLS=OFF
+          "-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64" -DCMAKE_OSX_DEPLOYMENT_TARGET=11.0
+      - name: Build
+        run: cmake --build build
+      - name: Test
+        run: |
+          if ctest --test-dir build --output-on-failure > ctest.log 2>&1; then
+            cat ctest.log
+          else
+            cat ctest.log
+            echo "::error title=ctest (macOS)::$(tail -n 40 ctest.log | sed -e 's/%/%25/g' | awk '{printf "%s%%0A", $0}')"
+            exit 1
+          fi
+      - name: Package
+        run: cmake --build build --target dmg
+      - uses: actions/upload-artifact@v6
+        with:
+          name: SuperSaga-macOS
+          path: build/SuperSaga-*-macOS.dmg
+          if-no-files-found: error
+
+  windows:
+    name: Windows (x64)
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/cache@v5
+        with:
+          path: |
+            .deps
+            ${{ github.workspace }}/vcpkg-cache
+          key: deps-windows-${{ hashFiles('CMakeLists.txt') }}
+      - name: zlib (vcpkg, static)
+        shell: pwsh
+        env:
+          VCPKG_DEFAULT_BINARY_CACHE: ${{ github.workspace }}/vcpkg-cache
+        run: |
+          New-Item -ItemType Directory -Force -Path $env:VCPKG_DEFAULT_BINARY_CACHE | Out-Null
+          & "$env:VCPKG_INSTALLATION_ROOT\vcpkg" install zlib:x64-windows-static
+      - name: Configure
+        shell: pwsh
+        run: >
+          cmake -S . -B build -G "Visual Studio 17 2022" -A x64
+          "-DFETCHCONTENT_BASE_DIR=$env:GITHUB_WORKSPACE/.deps"
+          -DSUPERSAGA_VENDOR_SDL=ON -DSUPERSAGA_BUILD_TOOLS=OFF -DSUPERSAGA_PACKAGE=ON
+          "-DCMAKE_TOOLCHAIN_FILE=$env:VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+          -DVCPKG_TARGET_TRIPLET=x64-windows-static
+      - name: Build
+        run: cmake --build build --config Release
+      - name: Test
+        shell: bash
+        run: |
+          if ctest --test-dir build -C Release --output-on-failure > ctest.log 2>&1; then
+            cat ctest.log
+          else
+            cat ctest.log
+            echo "::error title=ctest (Windows)::$(tail -n 40 ctest.log | sed -e 's/%/%25/g' | awk '{printf "%s%%0A", $0}')"
+            exit 1
+          fi
+      - name: Package
+        run: cmake --build build --config Release --target package_exe
+      - name: Check the exe is self-contained
+        # Only Windows system DLLs may be imported (no MSVC runtime, SDL, zlib or other DLLs).
+        shell: pwsh
+        run: |
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $dumpbin = & $vswhere -latest -products * -find "VC\Tools\MSVC\**\bin\Hostx64\x64\dumpbin.exe" | Select-Object -First 1
+          $exe = Get-ChildItem build -Filter "SuperSaga-*-Windows-x64.exe" | Select-Object -First 1
+          $deps = & $dumpbin /nologo /dependents $exe.FullName | ForEach-Object { $_.Trim() } | Where-Object { $_ -match '\.dll$' }
+          Write-Host "Imports:"; $deps | ForEach-Object { Write-Host "  $_" }
+          $bad = $deps | Where-Object {
+            $_ -match '^(vcruntime|msvcp|concrt|vccorlib|ucrtbased|api-ms-win-crt|sdl|zlib|z\.dll|libpng|libcurl)' -or
+            -not (Test-Path (Join-Path "$env:SystemRoot\System32" $_))
+          }
+          if ($bad) { Write-Host "::error title=Not self-contained::SuperSaga.exe imports non-system DLLs: $($bad -join ', ')"; exit 1 }
+      - uses: actions/upload-artifact@v6
+        with:
+          name: SuperSaga-Windows
+          path: build/SuperSaga-*-Windows-x64.exe
+          if-no-files-found: error
+
+  linux:
+    name: Linux (x86_64 AppImage)
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/cache@v5
+        with:
+          path: .deps
+          key: deps-linux-${{ hashFiles('CMakeLists.txt') }}
+      - name: Tag matches the app version
+        # The in-app updater compares the built-in version with the release tag; a mismatch would
+        # offer the same release again forever.
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          VERSION=$(sed -n 's/^project(supersaga LANGUAGES C CXX VERSION \([0-9.]*\)).*/\1/p' CMakeLists.txt)
+          if [ "v$VERSION" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match the version in CMakeLists.txt ($VERSION)"
+            exit 1
+          fi
+      - name: Packages
+        # Runner DNS or mirror hiccups: apt retries each download, and the whole step is
+        # retried a few times instead of hanging until the job times out.
+        timeout-minutes: 15
+        run: |
+          # GitHub's runners have been unable to reach Ubuntu's own servers and the Azure mirror,
+          # so point apt only at the kernel.org mirror. Third-party repositories (Microsoft etc.)
+          # are dropped: the build needs nothing from them.
+          sudo rm -f /etc/apt/sources.list.d/*.list /etc/apt/sources.list.d/*.sources
+          m=https://mirrors.edge.kernel.org/ubuntu
+          printf 'deb %s jammy main universe\ndeb %s jammy-updates main universe\ndeb %s jammy-security main universe\n' \
+            $m $m $m | sudo tee /etc/apt/sources.list
+          apt_opts="-o Acquire::Retries=5 -o Acquire::http::Timeout=30 -o Acquire::https::Timeout=30"
+          for attempt in 1 2 3; do
+            if sudo apt-get $apt_opts update && sudo apt-get $apt_opts install -y --no-install-recommends ninja-build zlib1g-dev \
+            libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxfixes-dev libxi-dev libxss-dev \
+            libxtst-dev libxkbcommon-dev libwayland-dev wayland-protocols libdecor-0-dev \
+            libegl1-mesa-dev libgl1-mesa-dev libgles2-mesa-dev libdrm-dev libgbm-dev \
+            libasound2-dev libpulse-dev libpipewire-0.3-dev libudev-dev libdbus-1-dev libibus-1.0-dev \
+            libfuse2 file desktop-file-utils; then
+              exit 0
+            fi
+            echo "apt failed (attempt $attempt), retrying in 20 s"
+            sleep 20
+          done
+          exit 1
+      - name: Configure
+        run: >
+          cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
+          -DFETCHCONTENT_BASE_DIR="$GITHUB_WORKSPACE/.deps"
+          -DSUPERSAGA_VENDOR_SDL=ON -DSUPERSAGA_BUILD_TOOLS=OFF -DSUPERSAGA_PACKAGE=ON -DCMAKE_INSTALL_PREFIX=/usr
+      - name: Build
+        run: cmake --build build
+      - name: Test
+        run: |
+          if ctest --test-dir build --output-on-failure > ctest.log 2>&1; then
+            cat ctest.log
+          else
+            cat ctest.log
+            echo "::error title=ctest (Linux)::$(tail -n 40 ctest.log | sed -e 's/%/%25/g' | awk '{printf "%s%%0A", $0}')"
+            exit 1
+          fi
+      - name: AppImage
+        env:
+          APPIMAGE_EXTRACT_AND_RUN: "1"
+          ARCH: x86_64
+        run: |
+          set -o pipefail
+          fail() {
+            echo "::error title=AppImage::$(tail -n 40 appimage.log | sed -e 's/%/%25/g' | awk '{printf "%s%%0A", $0}')"
+            exit 1
+          }
+          {
+            set -ex
+            VERSION=$(sed -n 's/^project(supersaga LANGUAGES C CXX VERSION \([0-9.]*\)).*/\1/p' CMakeLists.txt)
+            DESTDIR="$PWD/AppDir" cmake --install build
+            cp packaging/linux/supersaga.desktop AppDir/supersaga.desktop
+            cp build/supersaga.png AppDir/supersaga.png
+            ln -sf usr/bin/supersaga AppDir/AppRun
+            if [ -f recomplauncher.json ]; then cp recomplauncher.json AppDir/recomplauncher.json; fi
+            find AppDir -maxdepth 4 | sort
+            curl -fsSL -o appimagetool https://github.com/AppImage/appimagetool/releases/download/1.9.0/appimagetool-x86_64.AppImage
+            chmod +x appimagetool
+            ./appimagetool AppDir "SuperSaga-${VERSION}-Linux-x64.AppImage"
+          } > appimage.log 2>&1 || { cat appimage.log; fail; }
+          cat appimage.log
+      - uses: actions/upload-artifact@v6
+        with:
+          name: SuperSaga-Linux
+          path: SuperSaga-*-Linux-x64.AppImage
+          if-no-files-found: error
+
+  release:
+    name: Release
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [macos, windows, linux]
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/download-artifact@v7
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Check release files
+        # Only the three built apps (plus the RecompLauncher metadata, when the repository has it)
+        # are published; CI never has game files.
+        run: |
+          set -e
+          if [ -f recomplauncher.json ]; then cp recomplauncher.json dist/recomplauncher.json; fi
+          ls -la dist
+          shopt -s nullglob
+          apps=(dist/SuperSaga-*)
+          [ "${#apps[@]}" -eq 3 ] || { echo "::error::expected exactly 3 app files in dist/"; exit 1; }
+          for f in dist/*; do
+            case "$(basename "$f")" in
+              SuperSaga-*-macOS.dmg|SuperSaga-*-Windows-x64.exe|SuperSaga-*-Linux-x64.AppImage|recomplauncher.json) ;;
+              *) echo "::error::unexpected file in dist/: $f"; exit 1 ;;
+            esac
+          done
+          (cd dist && sha256sum SuperSaga-* > SHA256SUMS.txt && cat SHA256SUMS.txt)
+      - uses: softprops/action-gh-release@v3
+        with:
+          files: |
+            dist/SuperSaga-*-macOS.dmg
+            dist/SuperSaga-*-Windows-x64.exe
+            dist/SuperSaga-*-Linux-x64.AppImage
+            dist/SHA256SUMS.txt
+            dist/recomplauncher.json
+          generate_release_notes: true

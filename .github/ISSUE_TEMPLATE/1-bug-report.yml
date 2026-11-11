@@ -1,0 +1,197 @@
+name: Bug report
+description: Something in SuperSaga or the game does not work as it should (crash, freeze, graphics, sound, controls, menus).
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve SuperSaga. A few rules before you start:
+
+        - **Never attach or link a ROM, a BIOS file, or game files extracted from them.** Issues that do will be deleted.
+        - **Never share RetroAchievements passwords or tokens**, or the `retroachievements.token` file.
+        - **Only add a screenshot or video of the game when the problem can't be described without it** (for example a graphics glitch), and crop it to the problem. For menus and settings, text is better.
+        - Logs can show folder paths with your user name in them. You may replace it with `<user>`.
+
+        Got a problem starting SuperSaga, or with your ROM or BIOS? Use **Can't start SuperSaga or ROM not accepted** instead. Saves, RetroAchievements and updates have their own forms too.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you report
+      options:
+        - label: I am on the [latest release](https://github.com/sweatyeggs69/SuperSaga/releases/latest), or I say below why I can't update.
+          required: true
+        - label: I searched the [existing issues](https://github.com/sweatyeggs69/SuperSaga/issues?q=is%3Aissue) and this is not a duplicate.
+          required: true
+        - label: I have not attached a ROM, a BIOS file, or a RetroAchievements password or token.
+          required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Where does the problem happen?
+      options:
+        - Gameplay (crash, freeze, wrong behavior)
+        - Graphics in game
+        - Sound
+        - Controls, gamepad or remapping
+        - Display settings (scaling, widescreen, colors, blending, overlays, fullscreen)
+        - Launcher or F1 settings menu
+        - Shortcut (Create Shortcut, --play)
+        - Performance (slowdown, stutter, tearing)
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe the problem and what you expected to happen instead.
+      placeholder: After the boss in Vegetable Valley the screen goes black and the music keeps playing.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Where in the game, which menu, which buttons. Say if it happens every time or only sometimes.
+      placeholder: |
+        1. Continue from save file 1
+        2. Enter Vegetable Valley stage 2
+        3. ...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - macOS (Apple Silicon)
+        - macOS (Intel)
+        - Windows 11
+        - Windows 10
+        - Linux
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: os-version
+    attributes:
+      label: OS version and details
+      description: "macOS: Apple menu > About This Mac. Windows: Settings > System > About. Linux: distro, version, desktop, and X11 or Wayland."
+      placeholder: "macOS 15.1 / Windows 11 24H2 / CachyOS, KDE Plasma 6.2, Wayland"
+    validations:
+      required: true
+
+  - type: input
+    id: supersaga-version
+    attributes:
+      label: SuperSaga version
+      description: Shown in Settings (F1) > About, and in Settings > Updates.
+      placeholder: "1.0.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install
+    attributes:
+      label: How did you install SuperSaga?
+      options:
+        - macOS DMG from GitHub Releases
+        - Windows .exe from GitHub Releases
+        - Linux AppImage from GitHub Releases
+        - RecompLauncher
+        - Built from source
+    validations:
+      required: true
+
+  - type: input
+    id: hardware
+    attributes:
+      label: Computer and graphics
+      description: Model or CPU and GPU, and the display resolution and refresh rate if it's a display or performance problem.
+      placeholder: "MacBook Air M2, 2560x1664 at 60 Hz / Ryzen 5 5600, RTX 3060, 1440p 144 Hz"
+
+  - type: dropdown
+    id: rom-check
+    attributes:
+      label: ROM check
+      description: "Settings (F1) > Game > Game ROM. It should say: Mario & Luigi: Superstar Saga (USA), verified."
+      options:
+        - Verified
+        - Not verified (use the "Can't start SuperSaga or ROM not accepted" form instead)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: bios
+    attributes:
+      label: BIOS
+      description: Settings (F1) > Game > BIOS (optional).
+      options:
+        - Built-in BIOS (default)
+        - My own BIOS file, verified
+        - My own BIOS file, not verified
+    validations:
+      required: true
+
+  - type: dropdown
+    id: controller
+    attributes:
+      label: Input device
+      multiple: true
+      options:
+        - Keyboard
+        - Xbox controller
+        - PlayStation controller
+        - Nintendo Switch controller
+        - 8BitDo controller
+        - Other gamepad (name it below)
+        - Steam Deck or handheld PC
+
+  - type: textarea
+    id: settings
+    attributes:
+      label: Settings you changed
+      description: |
+        Anything not at the default: scaling, widescreen view, original GBA screen colors, frame blending, screen overlay and strength, fullscreen, remapped controls, auto-load save state, RetroAchievements on or off.
+
+        You can also paste your `settings.ini` from the save folder (Settings > Game > Saves > **Show save folder**). It holds no passwords or tokens.
+      placeholder: |
+        Scaling: Fit to window
+        Widescreen view: 21:9
+        Frame blending: Mix
+        Controls: A remapped to J
+      render: ini
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log output
+      description: |
+        SuperSaga prints its log to a terminal. Start it from one, reproduce the problem, then paste what it printed.
+
+        - **macOS:** in Terminal run `/Applications/SuperSaga.app/Contents/MacOS/SuperSaga --verbose`
+        - **Windows:** in PowerShell, in the folder with the .exe, run `.\SuperSaga-<version>-Windows-x64.exe --verbose --console`
+        - **Linux:** in a terminal run `./SuperSaga-<version>-Linux-x64.AppImage --verbose`
+
+        If SuperSaga crashed, also attach the crash report if there is one (macOS: the "SuperSaga quit unexpectedly" report text; Windows: Event Viewer > Windows Logs > Application; Linux: `coredumpctl info SuperSaga`).
+      render: text
+
+  - type: textarea
+    id: media
+    attributes:
+      label: Screenshot or video (only if needed)
+      description: Only for problems you can't describe in words. Crop to the problem. Do not post full playthroughs or menus that text can describe.
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?
+      description: Did it work in an earlier version? Does it happen with the default settings? Does it happen in another emulator with the same ROM?
