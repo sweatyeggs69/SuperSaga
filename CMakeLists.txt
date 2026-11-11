@@ -208,6 +208,17 @@ if(TARGET SDL3::SDL3)
         DEPENDS assets/logo/supersaga-logo.png cmake/embed.cmake
         COMMENT "Embedding the SuperSaga logo")
     list(APPEND supersaga_font_cpp "${out}")
+    # The app icon (512x512, rendered by supersaga_icon), written into the shortcuts the launcher
+    # creates so they carry the SuperSaga icon even from a plain build/supersaga.
+    set(icon_png "${CMAKE_CURRENT_BINARY_DIR}/supersaga-icon-512.png")
+    set(out "${CMAKE_CURRENT_BINARY_DIR}/image_icon.cpp")
+    add_custom_command(OUTPUT "${out}"
+        COMMAND supersaga_icon --png 512 "${icon_png}"
+        COMMAND "${CMAKE_COMMAND}" -DINPUT=${icon_png} -DOUTPUT=${out}
+                -DSYMBOL=supersaga_image_icon -P ${PROJECT_SOURCE_DIR}/cmake/embed.cmake
+        DEPENDS supersaga_icon cmake/embed.cmake
+        COMMENT "Embedding the SuperSaga app icon")
+    list(APPEND supersaga_font_cpp "${out}")
     # License texts compiled in (shown in F1 > About and by --licenses).
     foreach(pair "license;LICENSE" "notices;THIRD_PARTY_NOTICES.md" "dmsans_ofl;assets/fonts/DMSans-OFL.txt")
         list(GET pair 0 name)

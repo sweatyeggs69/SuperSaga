@@ -1,8 +1,10 @@
 #include "app/platform.h"
 
+#include <cstdint>
 #include <cstdlib>
 #include <fstream>
 #include <system_error>
+#include <vector>
 
 #include "app/config.h"
 #include "app/fsutil.h"
@@ -24,11 +26,17 @@
 #include <unistd.h>
 #endif
 
+// The app icon (rendered by supersaga_icon at build time, 512x512 PNG), written into shortcuts.
+extern const unsigned char supersaga_image_icon[];
+extern const unsigned supersaga_image_icon_size;
+
 namespace supersaga {
 namespace fs = std::filesystem;
 
 namespace {
-constexpr const char* kShortcutName = game::kFileSafeTitle;
+// Shortcuts carry the app's own name and icon. Early test builds named them after the game.
+constexpr const char* kShortcutName = "SuperSaga";
+constexpr const char* kLegacyShortcutName = game::kFileSafeTitle;
 
 #if defined(_WIN32)
 // Marker in the .lnk description so SuperSaga recognizes its own shortcut.
@@ -184,24 +192,39 @@ constexpr const char* kShortcutId = "tech.mcclain.supersaga.shortcut";
 constexpr const char* kOldShortcutId = "tech.mcclain.supersaga.play";  // earlier builds
 }  // namespace
 
-fs::path shortcut_path(ShortcutPlace place) {
+namespace {
+fs::path shortcut_path_named(ShortcutPlace place, const char* name) {
 #if defined(__APPLE__)
     fs::path dir = home_dir() / (place == ShortcutPlace::Desktop ? "Desktop" : "Applications");
-    return dir / (std::string(kShortcutName) + ".app");
+    return dir / (std::string(name) + ".app");
 #elif defined(_WIN32)
     fs::path dir = known_folder(place == ShortcutPlace::Desktop ? FOLDERID_Desktop : FOLDERID_Programs);
-    return dir.empty() ? fs::path() : dir / (std::string(kShortcutName) + ".lnk");
+    return dir.empty() ? fs::path() : dir / (std::string(name) + ".lnk");
 #else
+    (void)name;  // the .desktop file name never changed; only its Name= line did
     fs::path dir = place == ShortcutPlace::Desktop ? home_dir() / "Desktop"
                                                    : home_dir() / ".local" / "share" / "applications";
     return dir / "supersaga-play.desktop";
 #endif
 }
 
-ShortcutState shortcut_state(ShortcutPlace place) {
-    fs::path p = shortcut_path(place);
+// A shortcut from an older build, saved under the game's name. Empty where the name did not change.
+fs::path legacy_shortcut_path(ShortcutPlace place) {
+#if defined(__APPLE__) || defined(_WIN32)
+    return shortcut_path_named(place, kLegacyShortcutName);
+#else
+    (void)place;
+    return {};
+#endif
+}
+
+bool exists_at(const fs::path& p) {
     std::error_code ec;
-    if (p.empty() || !fs::exists(fs::symlink_status(p, ec)) ) return ShortcutState::None;
+    return !p.empty() && fs::exists(fs::symlink_status(p, ec));
+}
+
+ShortcutState state_at(const fs::path& p) {
+    if (!exists_at(p)) return ShortcutState::None;
 #if defined(__APPLE__)
     std::ifstream f(p / "Contents" / "Info.plist");
     std::string plist((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
@@ -216,16 +239,78 @@ ShortcutState shortcut_state(ShortcutPlace place) {
     return ours ? ShortcutState::Ours : ShortcutState::Foreign;
 }
 
+// Moves an older build's game-named shortcut to the Trash, if it is ours.
+void retire_legacy_shortcut(ShortcutPlace place) {
+    fs::path old = legacy_shortcut_path(place);
+    if (!old.empty() && old != shortcut_path(place) && state_at(old) == ShortcutState::Ours) move_to_trash(old);
+}
+
+#if !defined(_WIN32)  // Windows shortcuts use the icon inside SuperSaga.exe
+std::vector<unsigned char> icon_png() {
+    return std::vector<unsigned char>(supersaga_image_icon, supersaga_image_icon + supersaga_image_icon_size);
+}
+#endif
+
+#if defined(__APPLE__)
+// A minimal .icns holding the 512x512 PNG (type ic09); Finder scales it for smaller sizes.
+bool write_icns(const fs::path& out) {
+    std::vector<unsigned char> png = icon_png();
+    auto be32 = [](std::ofstream& f, std::uint32_t v) {
+        const char b[4] = {char(v >> 24), char(v >> 16), char(v >> 8), char(v)};
+        f.write(b, 4);
+    };
+    std::ofstream f(out, std::ios::binary | std::ios::trunc);
+    f.write("icns", 4);
+    be32(f, std::uint32_t(8 + 8 + png.size()));
+    f.write("ic09", 4);
+    be32(f, std::uint32_t(8 + png.size()));
+    f.write(reinterpret_cast<const char*>(png.data()), std::streamsize(png.size()));
+    return bool(f);
+}
+#elif !defined(_WIN32)
+// The icon for .desktop shortcuts, in the user's icon folder. Referenced by absolute path so it
+// shows up without an icon-cache refresh, also when SuperSaga runs as an AppImage.
+fs::path write_linux_icon() {
+    fs::path base;
+    if (const char* x = std::getenv("XDG_DATA_HOME"); x && *x) base = utf8_path(x);
+    else base = home_dir() / ".local" / "share";
+    fs::path dir = base / "icons" / "hicolor" / "512x512" / "apps";
+    std::error_code ec;
+    fs::create_directories(dir, ec);
+    fs::path out = dir / "supersaga.png";
+    std::vector<unsigned char> png = icon_png();
+    std::ofstream f(out, std::ios::binary | std::ios::trunc);
+    f.write(reinterpret_cast<const char*>(png.data()), std::streamsize(png.size()));
+    return f ? out : fs::path();
+}
+#endif
+}  // namespace
+
+fs::path shortcut_path(ShortcutPlace place) { return shortcut_path_named(place, kShortcutName); }
+
+ShortcutState shortcut_state(ShortcutPlace place) {
+    ShortcutState st = state_at(shortcut_path(place));
+    // An older build's shortcut still counts as ours, so the launcher offers to update it.
+    if (st == ShortcutState::None && state_at(legacy_shortcut_path(place)) == ShortcutState::Ours) return ShortcutState::Ours;
+    return st;
+}
+
 ShortcutResult remove_shortcut(ShortcutPlace place) {
     ShortcutResult r;
     fs::path p = shortcut_path(place);
-    switch (shortcut_state(place)) {
+    ShortcutState st = state_at(p);
+    if (st == ShortcutState::None) {
+        fs::path old = legacy_shortcut_path(place);
+        if (!old.empty() && state_at(old) == ShortcutState::Ours) { p = old; st = ShortcutState::Ours; }
+    }
+    switch (st) {
         case ShortcutState::None: r.ok = true; r.message = "There is no shortcut to remove."; return r;
         case ShortcutState::Foreign: r.message = p.string() + " was not created by SuperSaga, so it was left alone."; return r;
         case ShortcutState::Ours: break;
     }
     fs::path where;
     if (!move_to_trash(p, &where)) { r.message = "Could not move " + p.string() + " to the Trash."; return r; }
+    retire_legacy_shortcut(place);
     r.ok = true;
     r.path = where;
     r.message = "Shortcut moved to the Trash.";
@@ -244,7 +329,17 @@ ShortcutResult create_shortcut(ShortcutPlace place, bool replace_foreign) {
         r.message = "Creating shortcuts is not available on this system yet.";
         return r;
     }
-    ShortcutState state = shortcut_state(place);
+    ShortcutState state = state_at(target);
+#if defined(__APPLE__)
+    // Never offer to replace SuperSaga.app itself when it lives where the shortcut would go.
+    for (fs::path p = exe.parent_path(); p.has_relative_path(); p = p.parent_path()) {
+        std::error_code ec;
+        if (p.extension() == ".app" && exists_at(target) && fs::equivalent(p, target, ec)) {
+            r.message = "SuperSaga itself is already at " + target.string() + ".";
+            return r;
+        }
+    }
+#endif
     if (state == ShortcutState::Foreign) {
         if (!replace_foreign) {
             r.needs_confirm = true;
@@ -258,7 +353,7 @@ ShortcutResult create_shortcut(ShortcutPlace place, bool replace_foreign) {
             return r;
         }
     }
-    bool updating = state == ShortcutState::Ours;
+    bool updating = state == ShortcutState::Ours || shortcut_state(place) == ShortcutState::Ours;
     std::error_code ec;
 #if defined(__APPLE__)
     fs::path contents = target / "Contents";
@@ -276,11 +371,15 @@ ShortcutResult create_shortcut(ShortcutPlace place, bool replace_foreign) {
     }
     if (!bundle.empty()) {
         launch = "exec /usr/bin/open -a " + shell_quote(bundle.string()) + " --args --play\n";
-        fs::path icon = bundle / "Contents" / "Resources" / "AppIcon.icns";
-        if (fs::exists(icon, ec))
-            fs::copy_file(icon, contents / "Resources" / "AppIcon.icns", fs::copy_options::overwrite_existing, ec);
     } else {
         launch = "exec " + shell_quote(exe.string()) + " --play \"$@\"\n";
+    }
+    // The SuperSaga icon, also when running a plain build/supersaga that has no bundle to copy from.
+    {
+        fs::path icon = bundle.empty() ? fs::path() : bundle / "Contents" / "Resources" / "AppIcon.icns";
+        if (icon.empty() || !fs::exists(icon, ec) ||
+            !fs::copy_file(icon, contents / "Resources" / "AppIcon.icns", fs::copy_options::overwrite_existing, ec))
+            write_icns(contents / "Resources" / "AppIcon.icns");
     }
     {
         std::ofstream s(contents / "MacOS" / "play", std::ios::trunc);
@@ -317,10 +416,11 @@ ShortcutResult create_shortcut(ShortcutPlace place, bool replace_foreign) {
     // Inside an AppImage the executable lives in a temporary mount; point at the AppImage file.
     fs::path launch = exe;
     if (const char* appimage = std::getenv("APPIMAGE"); appimage && *appimage) launch = utf8_path(appimage);
+    fs::path icon = write_linux_icon();
     {
         std::ofstream d(target, std::ios::trunc);
         d << "[Desktop Entry]\nType=Application\nName=" << kShortcutName << "\nExec=\"" << launch.string()
-          << "\" --play\nIcon=supersaga\nStartupWMClass=SuperSaga\nTerminal=false\nCategories=Game;\nX-SuperSaga-Shortcut=true\n";
+          << "\" --play\nIcon=" << (icon.empty() ? std::string("supersaga") : icon.string()) << "\nStartupWMClass=SuperSaga\nTerminal=false\nCategories=Game;\nX-SuperSaga-Shortcut=true\n";
         if (!d) {
             r.message = "Could not write " + target.string();
             return r;
@@ -328,6 +428,7 @@ ShortcutResult create_shortcut(ShortcutPlace place, bool replace_foreign) {
     }
     chmod(target.c_str(), 0755);
 #endif
+    retire_legacy_shortcut(place);
     r.ok = true;
     r.path = target;
     r.message = std::string(updating ? "Shortcut updated:\n" : "Shortcut created:\n") + target.string();
