@@ -1,0 +1,169 @@
+name: Can't start SuperSaga or ROM not accepted
+description: SuperSaga won't open, install or start the game, or refuses your ROM or BIOS.
+title: "[Start]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        - **Never attach, upload or link a ROM or BIOS file**, and don't ask where to get one. SuperSaga only works with your own dump. Issues that share game files will be deleted.
+        - Checksums (SHA-1) and the text SuperSaga shows are all we need.
+
+        Common fixes first, from the [FAQ](https://github.com/sweatyeggs69/SuperSaga#faq):
+        - **macOS "can't be opened" or "damaged":** right-click SuperSaga in Applications, choose **Open**, then **Open** again.
+        - **Windows SmartScreen:** choose **More info**, then **Run anyway**.
+        - **Linux:** run `chmod +x SuperSaga-*.AppImage` first.
+        - **"That ROM is not the supported dump":** only the USA release, game code A88E, revision 0, unmodified, is supported. Other regions, revisions, hacks and bad dumps are refused on purpose.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you report
+      options:
+        - label: I am on the [latest release](https://github.com/sweatyeggs69/SuperSaga/releases/latest).
+          required: true
+        - label: I tried the common fixes above.
+          required: true
+        - label: I have not attached or linked a ROM or BIOS file.
+          required: true
+
+  - type: dropdown
+    id: problem
+    attributes:
+      label: What goes wrong?
+      options:
+        - The download is blocked, or the app won't open at all
+        - SuperSaga opens, then closes or crashes right away
+        - My ROM is not accepted
+        - The ROM was accepted before, but now SuperSaga asks for it again
+        - My BIOS file is not accepted
+        - The game starts with a black or frozen screen
+        - The shortcut doesn't start the game
+        - Something else
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: What you did and the exact message SuperSaga or your system showed. Copy the text rather than taking a screenshot.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - macOS (Apple Silicon)
+        - macOS (Intel)
+        - Windows 11
+        - Windows 10
+        - Linux
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: os-version
+    attributes:
+      label: OS version and details
+      description: "Linux: distro, version, desktop, and X11 or Wayland."
+      placeholder: "macOS 14.6 / Windows 10 22H2 / Ubuntu 24.04, GNOME, Wayland"
+    validations:
+      required: true
+
+  - type: input
+    id: supersaga-version
+    attributes:
+      label: SuperSaga version
+      description: The file name you downloaded, or Settings (F1) > About if SuperSaga opens.
+      placeholder: "1.0.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install
+    attributes:
+      label: How did you install SuperSaga?
+      options:
+        - macOS DMG from GitHub Releases
+        - Windows .exe from GitHub Releases
+        - Linux AppImage from GitHub Releases
+        - RecompLauncher
+        - Built from source
+    validations:
+      required: true
+
+  - type: textarea
+    id: rom-check
+    attributes:
+      label: ROM check result
+      description: |
+        Copy the text from Settings (F1) > Game > Game ROM, or the message shown after **Choose ROM...**. It lists what was found, for example `Found: ... [A88E] rev 0` and `SHA-1 ...`.
+
+        If SuperSaga won't open, you can get the SHA-1 yourself:
+        - **macOS / Linux:** `shasum -a 1 "path/to/your.gba"`
+        - **Windows (PowerShell):** `Get-FileHash -Algorithm SHA1 "path\to\your.gba"`
+      placeholder: |
+        That ROM is not the supported dump.
+        Found: MARIO&LUIGIU [A88E] rev 0
+        Needed: Mario & Luigi: Superstar Saga (USA) [A88E] rev 0
+        SHA-1 ...
+      render: text
+    validations:
+      required: true
+
+  - type: dropdown
+    id: rom-source
+    attributes:
+      label: Where is the ROM file?
+      description: Some locations cause trouble (removed drives, cloud folders that aren't downloaded, zip files).
+      options:
+        - On this computer's drive
+        - On a USB drive or SD card
+        - In a cloud folder (iCloud, OneDrive, Dropbox, Google Drive)
+        - Inside a .zip or .7z archive
+        - On a network share
+    validations:
+      required: true
+
+  - type: dropdown
+    id: bios
+    attributes:
+      label: BIOS
+      options:
+        - Built-in BIOS (default)
+        - My own BIOS file, verified
+        - My own BIOS file, not verified
+    validations:
+      required: true
+
+  - type: textarea
+    id: bios-status
+    attributes:
+      label: BIOS check result
+      description: |
+        Only if you use your own BIOS. Copy the message from Settings (F1) > Game > BIOS, plus its SHA-1 (same commands as above). Do not attach the file.
+      render: text
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log output
+      description: |
+        Start SuperSaga from a terminal and paste what it prints:
+
+        - **macOS:** `/Applications/SuperSaga.app/Contents/MacOS/SuperSaga --verbose`
+        - **Windows (PowerShell, in the .exe's folder):** `.\SuperSaga-<version>-Windows-x64.exe --verbose --console`
+        - **Linux:** `./SuperSaga-<version>-Linux-x64.AppImage --verbose`
+
+        For a crash, also add the system crash report if there is one. You may replace your user name in paths with `<user>`.
+      render: text
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?
+      description: Security or antivirus software, a managed or work computer, an older SuperSaga version that worked.

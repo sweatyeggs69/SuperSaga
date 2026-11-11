@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=SuperSaga
+GenericName=Mario & Luigi: Superstar Saga (native)
+Comment=Play your own copy of Mario & Luigi: Superstar Saga natively
+Exec=supersaga
+Icon=supersaga
+StartupWMClass=SuperSaga
+Terminal=false
+Categories=Game;

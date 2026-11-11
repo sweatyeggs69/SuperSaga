@@ -1,0 +1,133 @@
+name: Updates, RecompLauncher or packaging
+description: The in-app updater, installing through RecompLauncher, or the DMG, .exe or AppImage itself.
+title: "[Updates]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Updates never touch your saves, settings, ROM or BIOS. Every release has a `SHA256SUMS.txt` with checksums in its [release files](https://github.com/sweatyeggs69/SuperSaga/releases/latest).
+
+        **Never attach a ROM or BIOS file**, and don't post RetroAchievements passwords or tokens.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you report
+      options:
+        - label: I searched the [existing issues](https://github.com/sweatyeggs69/SuperSaga/issues?q=is%3Aissue) and this is not a duplicate.
+          required: true
+        - label: I have not attached a ROM, BIOS file, password or token.
+          required: true
+
+  - type: dropdown
+    id: problem
+    attributes:
+      label: What goes wrong?
+      options:
+        - SuperSaga doesn't find an update that is out
+        - SuperSaga keeps offering an update I already installed
+        - Checking for updates fails
+        - Downloading or verifying the update fails
+        - Installing the update fails, or SuperSaga won't start after it
+        - RecompLauncher can't install or update SuperSaga
+        - RecompLauncher doesn't accept my ROM or doesn't start the game
+        - Display settings on RecompLauncher's game page don't match SuperSaga
+        - Antivirus or SmartScreen flags a download
+        - A download doesn't match SHA256SUMS.txt
+        - Something else
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Steps you took and the exact message shown in Settings (F1) > Updates, RecompLauncher, or your system (copy the text).
+    validations:
+      required: true
+
+  - type: input
+    id: from-to
+    attributes:
+      label: Version installed and version offered
+      placeholder: "1.0.0, update to 1.0.1 offered"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - macOS (Apple Silicon)
+        - macOS (Intel)
+        - Windows 11
+        - Windows 10
+        - Linux
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: os-version
+    attributes:
+      label: OS version
+      placeholder: "macOS 15.1 / Windows 11 24H2 / Fedora 41"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install
+    attributes:
+      label: How did you install SuperSaga?
+      options:
+        - macOS DMG from GitHub Releases
+        - Windows .exe from GitHub Releases
+        - Linux AppImage from GitHub Releases
+        - RecompLauncher
+        - Built from source
+    validations:
+      required: true
+
+  - type: input
+    id: location
+    attributes:
+      label: Where is SuperSaga installed?
+      description: "The folder the app or file is in. Updating may fail in folders you can't write to."
+      placeholder: "/Applications, ~/Downloads, C:\\Games\\SuperSaga, ~/Applications"
+
+  - type: input
+    id: recomplauncher
+    attributes:
+      label: RecompLauncher version
+      description: Only if you use RecompLauncher.
+
+  - type: textarea
+    id: checksums
+    attributes:
+      label: Checksum of the download
+      description: |
+        For download, verification or antivirus problems. Compare with `SHA256SUMS.txt` in the release.
+        - **macOS / Linux:** `shasum -a 256 SuperSaga-*`
+        - **Windows (PowerShell):** `Get-FileHash SuperSaga-*.exe`
+      render: text
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log output
+      description: |
+        Run the update check from a terminal and paste what it prints:
+        - **macOS:** `/Applications/SuperSaga.app/Contents/MacOS/SuperSaga --check-update`
+        - **Windows (PowerShell, in the .exe's folder):** `.\SuperSaga-<version>-Windows-x64.exe --check-update --console`
+        - **Linux:** `./SuperSaga-<version>-Linux-x64.AppImage --check-update`
+
+        For install problems, use `--update-now` instead of `--check-update`.
+      render: text
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?
+      description: Antivirus or security software, a managed or work computer, a proxy or VPN.

@@ -1,0 +1,153 @@
+name: Saves, save import or save states
+description: A battery save is lost or won't import, or a save state won't save, load or show.
+title: "[Saves]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Saves live in your user folder, never inside the app: `~/Library/Application Support/SuperSaga/SuperSaga/` (macOS), `%APPDATA%\SuperSaga\SuperSaga\` (Windows) or `~/.local/share/SuperSaga/SuperSaga/` (Linux). Settings (F1) > Game > Saves > **Show save folder** opens it. SuperSaga backs up your save before every import.
+
+        - **Never attach a ROM or BIOS file.**
+        - **Don't attach save state files (`.ssst`) or their thumbnails**: they hold a copy of the game's memory and a picture of the game.
+        - A battery save (`.sav` / `.srm`, 8 KiB) is your own data and may help with import problems. Zip it first. Only share it if you are fine with it being public.
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before you report
+      options:
+        - label: I am on the [latest release](https://github.com/sweatyeggs69/SuperSaga/releases/latest).
+          required: true
+        - label: I have not attached a ROM, BIOS or save state file.
+          required: true
+
+  - type: dropdown
+    id: problem
+    attributes:
+      label: What kind of save problem?
+      options:
+        - Importing a save from another emulator fails
+        - An imported save loads, but my progress is wrong or missing
+        - My in-game (battery) save is lost or reset
+        - A save state won't save
+        - A save state won't load, or says it is damaged
+        - Auto-load save state on launch doesn't work
+        - Save state thumbnails or slot list are wrong
+        - Quick save / load shortcuts don't work
+        - Exporting a save
+        - Something else
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Steps you took, and the exact message SuperSaga showed (copy the text).
+    validations:
+      required: true
+
+  - type: dropdown
+    id: source-emulator
+    attributes:
+      label: Where does the imported save come from?
+      description: Only for import problems.
+      options:
+        - Not an import
+        - RetroArch (mGBA core)
+        - RetroArch (gpSP core)
+        - RetroArch (VBA-M or other core)
+        - mGBA
+        - VBA-M / VisualBoyAdvance
+        - NO$GBA
+        - DeSmuME (.dsv)
+        - A real cartridge (save dumped with a flash cart or dumper)
+        - Other (name it below)
+
+  - type: input
+    id: save-file
+    attributes:
+      label: Save file name and size
+      description: For import problems. The extension and the size in bytes (this game's EEPROM save is 8192 bytes; some flash carts pad it to 32768 or 65536).
+      placeholder: "Mario & Luigi - Superstar Saga.srm, 8192 bytes"
+
+  - type: dropdown
+    id: hardcore
+    attributes:
+      label: RetroAchievements hardcore mode
+      description: Hardcore mode blocks loading save states on purpose.
+      options:
+        - RetroAchievements off
+        - On, hardcore off
+        - On, hardcore on
+    validations:
+      required: true
+
+  - type: dropdown
+    id: os
+    attributes:
+      label: Operating system
+      options:
+        - macOS
+        - Windows
+        - Linux
+        - Other
+    validations:
+      required: true
+
+  - type: input
+    id: versions
+    attributes:
+      label: OS version and SuperSaga version
+      description: SuperSaga version is in Settings (F1) > About.
+      placeholder: "Windows 11 24H2, SuperSaga 1.0.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install
+    attributes:
+      label: How did you install SuperSaga?
+      options:
+        - GitHub Releases download
+        - RecompLauncher
+        - Built from source
+    validations:
+      required: true
+
+  - type: dropdown
+    id: folder
+    attributes:
+      label: Is your save folder synced or moved?
+      options:
+        - No, it's the default folder
+        - It's inside a synced folder (iCloud, OneDrive, Dropbox)
+        - I use --pref-dir or a custom location
+        - Not sure
+
+  - type: textarea
+    id: folder-list
+    attributes:
+      label: Save folder contents
+      description: |
+        A file list helps a lot. Paste the output of one of these:
+        - **macOS / Linux:** `ls -laR "<your save folder>"`
+        - **Windows (PowerShell):** `Get-ChildItem -Recurse "$env:APPDATA\SuperSaga\SuperSaga" | Select FullName, Length, LastWriteTime`
+      render: text
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log output
+      description: |
+        Start SuperSaga from a terminal, repeat the problem, and paste what it prints:
+        - **macOS:** `/Applications/SuperSaga.app/Contents/MacOS/SuperSaga --verbose`
+        - **Windows (PowerShell, in the .exe's folder):** `.\SuperSaga-<version>-Windows-x64.exe --verbose --console`
+        - **Linux:** `./SuperSaga-<version>-Linux-x64.AppImage --verbose`
+      render: text
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else?
