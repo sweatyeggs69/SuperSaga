@@ -2,6 +2,7 @@
 // the struct sizes guards against loading a state from a build with a different layout.
 #include "gba.h"
 
+#include <array>
 #include <cstring>
 #include <type_traits>
 
@@ -40,9 +41,26 @@ private:
     const std::vector<u8>& in_;
     size_t pos_ = 0;
 };
+
+// The 31d7f50 build (one test build of the audio work, 2026-11-11) stored extra output-filter
+// fields in each FIFO. Its states are still accepted: the FIFO contents are taken and the filter
+// fields dropped. Same member order and types as that build, so its size and padding match.
+struct FifoV31d7 {
+    std::array<s8, 32> data{};
+    u32 read = 0, size = 0;
+    s8 latch = 0;
+    s8 prev = 0;
+    u32 since = 0, period = 1;
+    float x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+    float b0 = 1, b1 = 0, a1 = 0, a2 = 0;
+    u32 coef_period = 0;
+};
 }  // namespace
 
-// The order of fields here is the format. Bump kVersion when it changes.
+// The order of fields here is the format, and it must stay loadable: never add, remove, reorder or
+// resize a field (keep output-only state outside it). kStateFingerprint below pins the layout so a
+// change fails to compile; if a change is ever unavoidable, keep loading the old layout too, as is
+// done for FifoV31d7.
 #define SUPERSAGA_STATE_FIELDS(X)                                                                    \
     X(ewram_) X(iwram_) X(io_) X(pal_) X(vram_) X(oam_) X(sram_) X(sram_dirty_)                  \
     X(r_) X(cpsr_) X(bank_r13_) X(bank_r14_) X(bank_spsr_) X(bank_fiq_r8_) X(bank_usr_r8_)        \
@@ -180,17 +198,32 @@ bool Gba::convert_bios_mode(Gba& t, bool from_real) {
     return true;
 }
 
+constexpr u32 Gba::state_fingerprint(bool v31d7) {
+    u32 fp = 0;
+#define SUPERSAGA_FP(m)                                                                           \
+    fp = fp * 131 + u32(v31d7 && std::is_same_v<decltype(m), decltype(fifo_)>                     \
+                            ? sizeof(std::array<FifoV31d7, 2>)                                    \
+                            : sizeof(m));
+    SUPERSAGA_STATE_FIELDS(SUPERSAGA_FP)
+#undef SUPERSAGA_FP
+    return fp;
+}
+
+namespace {
+// The layout every SuperSaga build has written except 31d7f50. Pinned so it can't change by accident.
+constexpr u32 kStateFingerprint = 3445028299u;
+}  // namespace
+
 std::vector<u8> Gba::save_state() const {
+    static_assert(state_fingerprint(false) == kStateFingerprint,
+                  "The save state layout changed. Old states would stop loading; see the note on "
+                  "SUPERSAGA_STATE_FIELDS.");
     std::vector<u8> out;
     out.reserve(0x60000);
     Writer w(out);
     for (char c : kMagic) w.put(c);
     w.put(kVersion);
-    u32 fingerprint = 0;
-#define SUPERSAGA_FP(m) fingerprint = fingerprint * 131 + u32(sizeof(m));
-    SUPERSAGA_STATE_FIELDS(SUPERSAGA_FP)
-#undef SUPERSAGA_FP
-    w.put(fingerprint);
+    w.put(state_fingerprint(false));
     w.put(real_bios_);
 #define SUPERSAGA_PUT(m) w.put(m);
     SUPERSAGA_STATE_FIELDS(SUPERSAGA_PUT)
@@ -208,21 +241,36 @@ bool Gba::load_state(const std::vector<u8>& data, std::string* error) {
     for (char& c : magic)
         if (!r.get(c)) return fail("The save state is truncated.");
     if (std::memcmp(magic, kMagic, sizeof magic) != 0) return fail("This is not a SuperSaga save state.");
-    u32 version = 0, fingerprint = 0, expected = 0;
+    u32 version = 0, fingerprint = 0;
     bool state_real_bios = false;
     if (!r.get(version) || version != kVersion)
         return fail("This save state was made by a different version of SuperSaga and can't be loaded.");
-#define SUPERSAGA_FP(m) expected = expected * 131 + u32(sizeof(m));
-    SUPERSAGA_STATE_FIELDS(SUPERSAGA_FP)
-#undef SUPERSAGA_FP
-    if (!r.get(fingerprint) || fingerprint != expected)
+    if (!r.get(fingerprint)) return fail("The save state is truncated.");
+    const bool v31d7 = fingerprint == state_fingerprint(true);
+    if (!v31d7 && fingerprint != state_fingerprint(false))
         return fail("This save state was made by a different build of SuperSaga and can't be loaded.");
     if (!r.get(state_real_bios)) return fail("The save state is truncated.");
 
     // Decode into a copy first so a bad file never leaves the machine half-loaded.
     auto tmp = std::make_unique<Gba>(std::vector<u8>{}, std::filesystem::path{});
     Gba& t = *tmp;
-#define SUPERSAGA_GET(m) if (!r.get(t.m)) return fail("The save state is truncated.");
+    auto get = [&](auto& field) {
+        if constexpr (std::is_same_v<std::remove_cvref_t<decltype(field)>, decltype(fifo_)>) {
+            if (v31d7) {
+                std::array<FifoV31d7, 2> old{};
+                if (!r.get(old)) return false;
+                for (size_t i = 0; i < field.size(); ++i) {
+                    field[i].data = old[i].data;
+                    field[i].read = old[i].read;
+                    field[i].size = old[i].size;
+                    field[i].latch = old[i].latch;
+                }
+                return true;
+            }
+        }
+        return r.get(field);
+    };
+#define SUPERSAGA_GET(m) if (!get(t.m)) return fail("The save state is truncated.");
     SUPERSAGA_STATE_FIELDS(SUPERSAGA_GET)
 #undef SUPERSAGA_GET
     if (!r.done()) return fail("The save state has unexpected extra data.");

@@ -89,6 +89,8 @@ public:
     // state (widescreen margin/output, per-line scratch buffers) is not included.
     std::vector<u8> save_state() const;
     bool load_state(const std::vector<u8>& data, std::string* error = nullptr);
+    // Layout fingerprint for save states; v31d7 gives the layout one 2026-11-11 test build wrote.
+    static constexpr u32 state_fingerprint(bool v31d7);
 
     u64 frame_count() const { return frame_count_; }
     // Read-only views of game memory (for achievements and tools).
