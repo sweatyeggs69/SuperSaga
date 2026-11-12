@@ -8,8 +8,12 @@
 #include <system_error>
 
 
+#include "app/i18n.h"
+
 namespace supersaga {
 namespace fs = std::filesystem;
+using i18n::tr;
+using i18n::trf;
 
 namespace {
 
@@ -52,8 +56,8 @@ NormalizedSave normalize_save(const std::vector<std::uint8_t>& file, const std::
     };
     if (is_state_extension(ext) || starts_with("RASTATE", 7) || starts_with("\x89PNG", 4) ||
         starts_with("RZIP", 4)) {
-        r.error = "That is a save state, not a battery save. Save states from other emulators can't be "
-                  "imported; use the in-game save file instead (.sav or .srm).";
+        r.error = tr("That is a save state, not a battery save. Save states from other emulators can't be "
+                     "imported; use the in-game save file instead (.sav or .srm).");
         return r;
     }
 
@@ -99,25 +103,26 @@ NormalizedSave normalize_save(const std::vector<std::uint8_t>& file, const std::
         for (std::size_t off = 0; off < tail_len && mirror; off += kSramSize)
             mirror = std::memcmp(tail + off, buf.data(), kSramSize) == 0;
         if (!padding && !mirror) {
-            r.error = "This save is " + kib(padded) + " and its extra data is not padding, so it is from "
-                      "another game. " + std::string(game::kTitle) + " uses a " + ours + " save.";
+            r.error = trf("This save is {0} and its extra data is not padding, so it is from another game. "
+                          "{1} uses a {2} save.",
+                          kib(padded), game::kTitle, ours);
             return r;
         }
         buf.resize(kSramSize);
         r.format += kib(padded) + " save (" + (mirror ? "mirrored" : "padded") + "), first " + kib(kSramSize) + " used";
     } else if (size == 0) {
-        r.error = "The file is empty.";
+        r.error = tr("The file is empty.");
         return r;
     } else {
-        r.error = "Unrecognized save size (" + std::to_string(size) + " bytes). " + std::string(game::kTitle) +
-                  " uses a " + ours + " save (" + std::to_string(kSramSize) + " bytes, .sav or .srm).";
+        r.error = trf("Unrecognized save size ({0} bytes). {1} uses a {2} save ({3} bytes, .sav or .srm).", size,
+                      game::kTitle, ours, kSramSize);
         return r;
     }
 
     if (all_equal(buf.data(), buf.size(), 0xFF) || all_equal(buf.data(), buf.size(), 0x00)) {
-        r.warning = "This save is blank, so importing it starts the game with no progress.";
+        r.warning = tr("This save is blank, so importing it starts the game with no progress.");
     } else if (!has_game_header(buf)) {
-        r.error = "This save doesn't belong to " + std::string(game::kTitle) + " (its game header is missing).";
+        r.error = trf("This save doesn't belong to {0} (its game header is missing).", game::kTitle);
         return r;
     }
     r.data = std::move(buf);

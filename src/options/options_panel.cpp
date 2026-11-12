@@ -13,6 +13,7 @@
 
 #include "app/config.h"
 #include "app/theme.h"
+#include "app/i18n.h"
 #include "game.h"
 #include "options/display.h"
 #include "options/input.h"
@@ -32,6 +33,8 @@ using namespace supersaga;
 constexpr bool kShowWidescreen = game::kWidescreen;
 using namespace supersaga::display;
 using supersaga::input::Button;
+using supersaga::i18n::tr;
+using supersaga::i18n::trf;
 
 // The rebind state lives across frames; it is created on first draw for this Config.
 struct PanelState {
@@ -99,7 +102,7 @@ bool enum_combo(const char* label, E& value) {
 
 const char* aspect_label(Aspect a) {
     switch (a) {
-        case Aspect::Native: return "Off (original 3:2)";
+        case Aspect::Native: return tr("Off (original 3:2)");
         case Aspect::R16x10: return "16:10";
         case Aspect::R16x9: return "16:9";
         default: return name(a);
@@ -110,20 +113,20 @@ void display_tab(Config& config) {
     Settings s = load([&](const std::string& k, const std::string& d) { return config.get(k, d); });
     bool changed = false;
 
-    theme::section("Size and shape");
+    theme::section(tr("Size and shape"));
     int scale = static_cast<int>(s.scale);
-    changed |= ImGui::RadioButton("Pixel perfect (integer scaling)", &scale, int(ScaleMode::Integer));
-    help_marker("Every GBA pixel becomes an exact block of screen pixels, so nothing shimmers or "
-                "blurs. Leaves a small border when the window is not an exact multiple.");
-    changed |= ImGui::RadioButton("Fit to window", &scale, int(ScaleMode::Fit));
-    help_marker("Fills as much of the window as possible. Some pixels end up one screen pixel "
-                "wider than others.");
+    changed |= ImGui::RadioButton(tr("Pixel perfect (integer scaling)"), &scale, int(ScaleMode::Integer));
+    help_marker(tr("Every GBA pixel becomes an exact block of screen pixels, so nothing shimmers or "
+                "blurs. Leaves a small border when the window is not an exact multiple."));
+    changed |= ImGui::RadioButton(tr("Fit to window"), &scale, int(ScaleMode::Fit));
+    help_marker(tr("Fills as much of the window as possible. Some pixels end up one screen pixel "
+                "wider than others."));
     s.scale = static_cast<ScaleMode>(scale);
 
     // Widescreen shows extra level at the sides (Gba::set_wide_margin); the host applies
     // display::wide_margin(aspect) and presents Gba::wide_framebuffer().
     if (kShowWidescreen) {
-        if (ImGui::BeginCombo("Widescreen view", aspect_label(s.aspect))) {
+        if (ImGui::BeginCombo(tr("Widescreen view"), aspect_label(s.aspect))) {
             for (int i = 0; i < int(Aspect::Count); ++i) {
                 const Aspect a = Aspect(i);
                 if (ImGui::Selectable(aspect_label(a), a == s.aspect)) {
@@ -133,32 +136,32 @@ void display_tab(Config& config) {
             }
             ImGui::EndCombo();
         }
-        help_marker("Shows more of the room at the left and right instead of stretching the "
-                    "picture. Pixels always stay square, and text boxes stay where they were. "
-                    "Screens without a scrolling room behind them, like menus and the title "
-                    "screen, stay 3:2, and past the edge of a room the sides are black.");
+        help_marker(tr("Shows more of the room at the left and right instead of stretching the "
+                       "picture. Pixels always stay square, and text boxes stay where they were. "
+                       "Screens without a scrolling room behind them, like menus and the title "
+                       "screen, stay 3:2, and past the edge of a room the sides are black."));
     }
 
     bool fullscreen = config.get("display.fullscreen", "0") == "1";
-    if (theme::toggle("Fullscreen", &fullscreen)) {
+    if (theme::toggle(tr("Fullscreen"), &fullscreen)) {
         config.set("display.fullscreen", fullscreen ? "1" : "0");
         if (SDL_Window* w = SDL_GetKeyboardFocus()) SDL_SetWindowFullscreen(w, fullscreen);
     }
-    help_marker("F11 also switches fullscreen.");
+    help_marker(tr("F11 also switches fullscreen."));
 
-    theme::section("Look");
+    theme::section(tr("Look"));
     bool gba_colors = s.color == ColorMode::GbaLcd;
-    if (theme::toggle("Original GBA screen colors", &gba_colors)) {
+    if (theme::toggle(tr("Original GBA screen colors"), &gba_colors)) {
         s.color = gba_colors ? ColorMode::GbaLcd : ColorMode::Raw;
         changed = true;
     }
-    help_marker("Softer, less saturated colors like the original unlit GBA screen. The game's "
-                "colors were chosen for that screen, so this is how they were meant to look.");
+    help_marker(tr("Softer, less saturated colors like the original unlit GBA screen. The game's "
+                "colors were chosen for that screen, so this is how they were meant to look."));
 
-    if (ImGui::BeginCombo("Frame blending", s.blend == Blend::Off ? "Off"
-                                           : s.blend == Blend::Mix ? "Blend two frames"
-                                                                   : "LCD ghosting")) {
-        const char* labels[] = {"Off", "Blend two frames", "LCD ghosting"};
+    if (ImGui::BeginCombo(tr("Frame blending"), s.blend == Blend::Off ? tr("Off")
+                                           : s.blend == Blend::Mix ? tr("Blend two frames")
+                                                                   : tr("LCD ghosting"))) {
+        const char* labels[] = {tr("Off"), tr("Blend two frames"), tr("LCD ghosting")};
         for (int i = 0; i < int(Blend::Count); ++i)
             if (ImGui::Selectable(labels[i], int(s.blend) == i)) {
                 s.blend = Blend(i);
@@ -166,21 +169,21 @@ void display_tab(Config& config) {
             }
         ImGui::EndCombo();
     }
-    help_marker("GBA games flicker some sprites every other frame on purpose, counting on the "
+    help_marker(tr("GBA games flicker some sprites every other frame on purpose, counting on the "
                 "slow GBA screen to smooth it out. Blending averages frames to match. LCD "
-                "ghosting also leaves short trails like the real screen.");
+                "ghosting also leaves short trails like the real screen."));
 
-    const char* overlay_labels[] = {"None", "Pixel grid", "LCD subpixels", "Scanlines"};
+    const char* overlay_labels[] = {tr("None"), tr("Pixel grid"), tr("LCD subpixels"), tr("Scanlines")};
     int ov = int(s.overlay);
-    if (ImGui::Combo("Screen overlay", &ov, overlay_labels, int(Overlay::Count))) {
+    if (ImGui::Combo(tr("Screen overlay"), &ov, overlay_labels, int(Overlay::Count))) {
         s.overlay = Overlay(ov);
         changed = true;
     }
-    help_marker("Pixel grid draws thin lines between pixels like the GBA's visible pixel gaps. "
+    help_marker(tr("Pixel grid draws thin lines between pixels like the GBA's visible pixel gaps. "
                 "LCD subpixels adds red, green and blue stripes. Overlays need at least 2x "
-                "scaling (3x for subpixels).");
+                "scaling (3x for subpixels)."));
     ImGui::BeginDisabled(s.overlay == Overlay::None);
-    changed |= ImGui::SliderInt("Overlay strength", &s.overlay_strength, 0, 100, "%d%%");
+    changed |= ImGui::SliderInt(tr("Overlay strength"), &s.overlay_strength, 0, 100, "%d%%");
     ImGui::EndDisabled();
 
     if (changed) store(s, [&](const std::string& k, const std::string& v) { config.set(k, v); });
@@ -195,7 +198,7 @@ enum class CellAction { None, Rebind, Clear };
 
 std::string remap_prompt_for(Source src) {
     (void)src;
-    return "Press any key...";
+    return tr("Press any key...");
 }
 
 bool begin_bindings_table(const char* id, const char* first, float first_width) {
@@ -203,8 +206,8 @@ bool begin_bindings_table(const char* id, const char* first, float first_width) 
                                       ImGuiTableFlags_PadOuterX))
         return false;
     ImGui::TableSetupColumn(first, ImGuiTableColumnFlags_WidthFixed, std::max(first_width, 110.0f));
-    ImGui::TableSetupColumn("Keyboard / Mouse");
-    ImGui::TableSetupColumn("Controller");
+    ImGui::TableSetupColumn(tr("Keyboard / Mouse"));
+    ImGui::TableSetupColumn(tr("Controller"));
     // Plain text headers: TableHeadersRow makes them focusable, which gets in the way of
     // keyboard and controller navigation.
     ImGui::TableNextRow(ImGuiTableRowFlags_Headers);
@@ -238,18 +241,18 @@ CellAction binding_cell(input::Manager& in, Source src, bool waiting, const std:
 
 void controls_tab(input::Manager& in, Config& config) {
     const Button waiting = in.remap_target();
-    theme::section("Buttons");
+    theme::section(tr("Buttons"));
 
-    ImGui::TextWrapped("Select a binding and press Enter, A or click it, then press the new key "
+    ImGui::TextWrapped("%s", tr("Select a binding and press Enter, A or click it, then press the new key "
                        "or controller button. Keyboard and controller bindings are kept apart, so "
-                       "both keep working. Delete (Backspace) or X on a controller clears one.");
-    ImGui::Text("Controllers connected: %d", in.gamepad_count());
-    help_marker("Any button your controller reports can be bound, including paddles, back "
+                       "both keep working. Delete (Backspace) or X on a controller clears one."));
+    ImGui::TextUnformatted(trf("Controllers connected: {0}", in.gamepad_count()).c_str());
+    help_marker(tr("Any button your controller reports can be bound, including paddles, back "
                 "buttons and extra buttons. Mouse buttons 4 and 5 go in the keyboard column. "
-                "Buttons remapped by Steam Input or another remapper work as whatever they send.");
+                "Buttons remapped by Steam Input or another remapper work as whatever they send."));
     ImGui::Spacing();
 
-    if (begin_bindings_table("bindings", "GBA button", ImGui::CalcTextSize("GBA button").x)) {
+    if (begin_bindings_table("bindings", tr("GBA button"), ImGui::CalcTextSize(tr("GBA button")).x)) {
         static constexpr Button kOrder[] = {Button::Up, Button::Down, Button::Left, Button::Right,
                                             Button::A,  Button::B,    Button::L,    Button::R,
                                             Button::Start, Button::Select};
@@ -258,7 +261,7 @@ void controls_tab(input::Manager& in, Config& config) {
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             ImGui::AlignTextToFramePadding();
-            ImGui::TextUnformatted(input::name(b));
+            ImGui::TextUnformatted(tr(input::name(b)));
             for (Source src : {Source::Keyboard, Source::Controller}) {
                 ImGui::TableNextColumn();
                 const bool wait = waiting == b && in.remap_source() == src;
@@ -275,18 +278,18 @@ void controls_tab(input::Manager& in, Config& config) {
 
     if (input::kActionCount > 0) {
         ImGui::Spacing();
-        theme::section("Extra controls");
-        ImGui::TextWrapped("Optional buttons for things the GBA does with held buttons. They start "
-                           "unbound, and are a good use for paddles, back buttons and other extras.");
+        theme::section(tr("Extra controls"));
+        ImGui::TextWrapped("%s", tr("Optional buttons for things the GBA does with held buttons. They start "
+                                    "unbound, and are a good use for paddles, back buttons and other extras."));
         const input::Action act_waiting = in.action_remap_target();
-        if (begin_bindings_table("actions", "Action", ImGui::CalcTextSize("Action").x)) {
+        if (begin_bindings_table("actions", tr("Action"), ImGui::CalcTextSize(tr("Action")).x)) {
             for (int i = 0; i < input::kActionCount; ++i) {
                 const auto a = input::Action(i);
                 ImGui::PushID(300 + i);
                 ImGui::TableNextRow();
                 ImGui::TableNextColumn();
                 ImGui::AlignTextToFramePadding();
-                ImGui::TextUnformatted(input::name(a));
+                ImGui::TextUnformatted(tr(input::name(a)));
                 for (Source src : {Source::Keyboard, Source::Controller}) {
                     ImGui::TableNextColumn();
                     const bool wait = act_waiting == a && in.remap_source() == src;
@@ -303,28 +306,28 @@ void controls_tab(input::Manager& in, Config& config) {
     }
 
     ImGui::Spacing();
-    theme::section("Turbo");
+    theme::section(tr("Turbo"));
     {
         const input::TurboSettings& t = in.config().turbo;
         bool on = config.get_bool("input.turbo", t.enabled);
-        if (theme::toggle("Turbo buttons", &on)) {
+        if (theme::toggle(tr("Turbo buttons"), &on)) {
             config.set_bool("input.turbo", on);
             in.reload();
         }
-        help_marker("While you hold a turbo button, the game sees it pressed over and over. "
-                    "Handy for rapid fire, but turn it off for a button you need to hold, "
-                    "such as B to inhale.");
+        help_marker(tr("While you hold a turbo button, the game sees it pressed over and over. "
+                       "Handy for rapid fire, but turn it off for a button you need to hold, "
+                       "such as B to inhale."));
         ImGui::BeginDisabled(!on);
         int rate = std::clamp(config.get_int("input.turbo.rate", t.rate), input::kTurboMinRate,
                               input::kTurboMaxRate);
-        if (ImGui::SliderInt("Turbo rate", &rate, input::kTurboMinRate, input::kTurboMaxRate,
-                             rate == 1 ? "%d press per second" : "%d presses per second",
+        if (ImGui::SliderInt(tr("Turbo rate"), &rate, input::kTurboMinRate, input::kTurboMaxRate,
+                             rate == 1 ? tr("%d press per second") : tr("%d presses per second"),
                              ImGuiSliderFlags_AlwaysClamp)) {
             config.set("input.turbo.rate", std::to_string(rate));
             in.reload();
         }
         ImGui::AlignTextToFramePadding();
-        ImGui::TextUnformatted("Turbo on:");
+        ImGui::TextUnformatted(tr("Turbo on:"));
         static constexpr Button kTurboButtons[] = {Button::A, Button::B, Button::L, Button::R};
         std::uint16_t mask = t.buttons;
         bool mask_changed = false;
@@ -333,7 +336,7 @@ void controls_tab(input::Manager& in, Config& config) {
             ImGui::PushID(200 + int(b));
             const std::uint16_t bit = std::uint16_t(1u << int(b));
             bool sel = (mask & bit) != 0;
-            if (theme::checkbox(input::name(b), &sel)) {
+            if (theme::checkbox(tr(input::name(b)), &sel)) {
                 mask = sel ? std::uint16_t(mask | bit) : std::uint16_t(mask & ~bit);
                 mask_changed = true;
             }
@@ -347,18 +350,18 @@ void controls_tab(input::Manager& in, Config& config) {
     }
 
     ImGui::Spacing();
-    theme::section("Shortcuts");
-    ImGui::TextWrapped("For a controller shortcut, hold the buttons together (up to two) and "
-                       "let go. F1, F11 and Esc are kept for the menu and fullscreen.");
+    theme::section(tr("Shortcuts"));
+    ImGui::TextWrapped("%s", tr("For a controller shortcut, hold the buttons together (up to two) and "
+                             "let go. F1, F11 and Esc are kept for the menu and fullscreen."));
     const input::Hotkey hk_waiting = in.hotkey_remap_target();
-    if (begin_bindings_table("shortcuts", "Action", ImGui::CalcTextSize(input::name(input::Hotkey::SaveNewSlot)).x)) {
+    if (begin_bindings_table("shortcuts", tr("Action"), ImGui::CalcTextSize(tr(input::name(input::Hotkey::SaveNewSlot))).x)) {
         for (int i = 0; i < input::kHotkeyCount; ++i) {
             const auto h = input::Hotkey(i);
             ImGui::PushID(100 + i);
             ImGui::TableNextRow();
             ImGui::TableNextColumn();
             ImGui::AlignTextToFramePadding();
-            ImGui::TextUnformatted(input::name(h));
+            ImGui::TextUnformatted(tr(input::name(h)));
             for (Source src : {Source::Keyboard, Source::Controller}) {
                 ImGui::TableNextColumn();
                 const bool wait = hk_waiting == h && in.remap_source() == src;
@@ -376,21 +379,21 @@ void controls_tab(input::Manager& in, Config& config) {
 
     ImGui::Spacing();
     ImGui::BeginDisabled(in.remapping());
-    if (ImGui::Button("Rebind all")) in.start_remap();
+    if (ImGui::Button(tr("Rebind all"))) in.start_remap();
     ImGui::SameLine();
-    if (ImGui::Button("Reset to defaults")) in.reset_to_defaults();
+    if (ImGui::Button(tr("Reset to defaults"))) in.reset_to_defaults();
     ImGui::EndDisabled();
     if (in.remapping()) {
         ImGui::SameLine();
-        if (ImGui::Button("Cancel")) in.cancel_remap();
+        if (ImGui::Button(tr("Cancel"))) in.cancel_remap();
     }
 
     int dz = config.get_int("input.deadzone", in.config().deadzone_percent);
-    if (ImGui::SliderInt("Stick dead zone", &dz, 5, 95, "%d%%")) {
+    if (ImGui::SliderInt(tr("Stick dead zone"), &dz, 5, 95, "%d%%")) {
         config.set("input.deadzone", std::to_string(dz));
         in.reload();
     }
-    help_marker("How far a stick or trigger must move before it counts as a press.");
+    help_marker(tr("How far a stick or trigger must move before it counts as a press."));
 
 }
 }  // namespace
@@ -447,15 +450,29 @@ struct Page {
 
 // The line under each page title.
 const char* default_description(const std::string& name) {
-    if (name == "Game") return "Your game file, how it starts, and shortcuts.";
-    if (name == "Display") return "How the game is drawn on your screen.";
-    if (name == "Controls") return "Keyboard and controller buttons, turbo and shortcuts.";
-    if (name == "States") return "Save states: save and load anywhere.";
-    if (name == "Cheats") return "Optional changes to the game.";
-    if (name == "Achievements") return "RetroAchievements sign-in and progress.";
-    if (name == "Updates") return "Your version and new releases.";
-    if (name == "About") return "Version, credits and licenses.";
+    if (name == "Game") return tr("Your game file, how it starts, and shortcuts.");
+    if (name == "Display") return tr("How the game is drawn on your screen.");
+    if (name == "Controls") return tr("Keyboard and controller buttons, turbo and shortcuts.");
+    if (name == "States") return tr("Save states: save and load anywhere.");
+    if (name == "Cheats") return tr("Optional changes to the game.");
+    if (name == "Achievements") return tr("RetroAchievements sign-in and progress.");
+    if (name == "Updates") return tr("Your version and new releases.");
+    if (name == "About") return tr("Version, credits and licenses.");
     return "";
+}
+
+// The big title over each page. Page names are English keys; the title is translated whole, so
+// each language can word it naturally.
+std::string page_title(const std::string& name) {
+    if (name == "Game") return tr("Game Settings");
+    if (name == "Display") return tr("Display Settings");
+    if (name == "Controls") return tr("Controls Settings");
+    if (name == "States") return tr("States Settings");
+    if (name == "Cheats") return tr("Cheats Settings");
+    if (name == "Achievements") return tr("Achievements Settings");
+    if (name == "Updates") return tr("Updates Settings");
+    if (name == "About") return tr("About Settings");
+    return trf("{0} Settings", tr(name.c_str()));
 }
 
 std::vector<Page> collect_pages(PanelState& st, supersaga::Config& config) {
@@ -466,8 +483,8 @@ std::vector<Page> collect_pages(PanelState& st, supersaga::Config& config) {
                 pages.push_back({t.name, default_description(t.name), [&t, &config] { if (t.draw) t.draw(config); }});
     };
     extras(true);
-    pages.push_back({"Display", default_description("Display"), [&config] { display_tab(config); }});
-    pages.push_back({"Controls", default_description("Controls"), [&st, &config] { controls_tab(*st.input, config); }});
+    pages.push_back({N_("Display"), default_description("Display"), [&config] { display_tab(config); }});
+    pages.push_back({N_("Controls"), default_description("Controls"), [&st, &config] { controls_tab(*st.input, config); }});
     extras(false);
     return pages;
 }
@@ -496,7 +513,7 @@ void draw_page(PanelState& st, const Page& page) {
     if (pane) {
         ImGui::SetCursorPos(ImVec2(kPadX, kPadTop));
         ImGui::PushFont(theme::font_title());
-        ImGui::TextUnformatted((page.name + " Settings").c_str());
+        ImGui::TextUnformatted(page_title(page.name).c_str());
         ImGui::PopFont();
         if (!page.description.empty()) {
             ImGui::SetCursorPosX(kPadX);
@@ -716,12 +733,12 @@ void draw_options_menu(supersaga::Config& config) {
             const float sub_h = std::min(item_h, 30.0f);
 
             // In game the top entry resumes play; opened from the launcher it just closes the menu.
-            if (st.on_quit ? nav_item("Resume game", false, item_h, SUPERSAGA_ICON_PLAY)
-                           : nav_item("Close", false, item_h, SUPERSAGA_ICON_X))
+            if (st.on_quit ? nav_item(tr("Resume game"), false, item_h, SUPERSAGA_ICON_PLAY)
+                           : nav_item(tr("Close"), false, item_h, SUPERSAGA_ICON_X))
                 open = false;
             if (ImGui::IsWindowAppearing()) ImGui::SetItemDefaultFocus();
             ImGui::Dummy(ImVec2(0, 8.0f));
-            if (nav_item("Settings", false, item_h, SUPERSAGA_ICON_SETTINGS) && !pages.empty())
+            if (nav_item(tr("Settings"), false, item_h, SUPERSAGA_ICON_SETTINGS) && !pages.empty())
                 st.current_tab = pages.front().name;
             // Pages, indented behind a vertical rule under the Settings icon.
             const float rule_x = 12.0f + ImGui::CalcTextSize(SUPERSAGA_ICON_SETTINGS).x * 0.5f;
@@ -730,14 +747,14 @@ void draw_options_menu(supersaga::Config& config) {
             const ImVec2 rule_top = ImGui::GetCursorScreenPos();
             ImGui::Indent(indent);
             for (const Page& p : pages) {
-                if (nav_item(p.name.c_str(), p.name == st.current_tab, sub_h, nullptr, true, p.name)) st.current_tab = p.name;
+                if (nav_item(tr(p.name.c_str()), p.name == st.current_tab, sub_h, nullptr, true, p.name)) st.current_tab = p.name;
             }
             ImGui::Unindent(indent);
             const float rule_bottom = ImGui::GetCursorScreenPos().y - style.ItemSpacing.y;
             dl->AddRectFilled(ImVec2(rule_top.x + rule_x - 1.0f, rule_top.y), ImVec2(rule_top.x + rule_x + 1.0f, rule_bottom),
                               theme::u32(c.line), 1.0f);
             ImGui::Dummy(ImVec2(0, 8.0f));
-            if (st.on_quit && nav_item("Quit to launcher", false, item_h, SUPERSAGA_ICON_LOG_OUT)) {
+            if (st.on_quit && nav_item(tr("Quit to launcher"), false, item_h, SUPERSAGA_ICON_LOG_OUT)) {
                 open = false;
                 st.on_quit();
             }
@@ -745,7 +762,7 @@ void draw_options_menu(supersaga::Config& config) {
                 ImGui::SetCursorPosY(wh - hint_h);
                 ImGui::SetCursorPosX(14.0f + 12.0f);
                 if (st.small_font) ImGui::PushFont(st.small_font);
-                ImGui::TextColored(c.ink_faint, "F1 or Esc closes this menu");
+                ImGui::TextColored(c.ink_faint, "%s", tr("F1 or Esc closes this menu"));
                 if (st.small_font) ImGui::PopFont();
             }
         }

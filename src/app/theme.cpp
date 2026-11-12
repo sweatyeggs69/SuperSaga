@@ -2,6 +2,8 @@
 
 #include <imgui_internal.h>
 
+#include "app/i18n.h"
+
 #include <algorithm>
 #include <cstring>
 #include <string_view>
@@ -286,13 +288,34 @@ bool binding_cell(const char* id, const char* text, bool waiting, float width) {
     dl->AddRectFilled(a, b, u32(waiting ? c.accent_soft : hovered ? c.high : c.raised), rounding);
     dl->AddRect(a, b, u32(waiting ? c.accent : c.line), rounding, 0, 1.0f);
     if (focused) dl->AddRect(ImVec2(a.x - 3, a.y - 3), ImVec2(b.x + 3, b.y + 3), u32(c.highlight), rounding + 3, 0, 2.0f);
-    const bool none = !waiting && std::string_view(text) == "None";
+    const bool none = !waiting && std::string_view(text) == i18n::tr("None");
     const ImVec4 ink = waiting ? c.accent : none ? c.ink_faint : c.ink;
     const float ty = a.y + (h - ImGui::GetFontSize()) * 0.5f;
     const ImVec2 ta(a.x + style.FramePadding.x, ty), tb(b.x - style.FramePadding.x, b.y);
     ImGui::PushStyleColor(ImGuiCol_Text, ink);
     ImGui::RenderTextEllipsis(dl, ta, tb, tb.x, tb.x, text, nullptr, nullptr);
     ImGui::PopStyleColor();
+    return pressed;
+}
+
+bool text_button(const char* label, ImFont* font, float x) {
+    const Palette& c = palette();
+    if (font) ImGui::PushFont(font);
+    const char* end = ImGui::FindRenderedTextEnd(label);
+    const ImVec2 ts = ImGui::CalcTextSize(label, end);
+    const ImVec2 pad(6.0f, 2.0f);
+    const ImVec2 size(ts.x + pad.x * 2, ts.y + pad.y * 2);
+    if (x >= 0.0f) ImGui::SetCursorScreenPos(ImVec2(x - pad.x, ImGui::GetCursorScreenPos().y - pad.y));
+    else ImGui::SetCursorPosX((ImGui::GetWindowSize().x - size.x) * 0.5f);
+    const ImVec2 pos = ImGui::GetCursorScreenPos();
+    const bool pressed = nav_button(label, size);
+    const bool hovered = ImGui::IsItemHovered();
+    const bool focused = ImGui::IsItemFocused() && GImGui->NavCursorVisible;
+    ImDrawList* dl = ImGui::GetWindowDrawList();
+    const ImVec2 b(pos.x + size.x, pos.y + size.y);
+    if (focused) dl->AddRect(ImVec2(pos.x - 2, pos.y - 2), ImVec2(b.x + 2, b.y + 2), u32(c.highlight), 8.0f, 0, 2.0f);
+    dl->AddText(ImVec2(pos.x + pad.x, pos.y + pad.y), u32(hovered || focused ? c.ink : c.ink_faint), label, end);
+    if (font) ImGui::PopFont();
     return pressed;
 }
 

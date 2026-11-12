@@ -104,8 +104,40 @@ void Presenter::redraw(const std::string& prompt) {
     }
 }
 
+namespace {
+// SDL's debug font only has ASCII, so translated text drops its accents ("Contrôles" ->
+// "Controles") and anything else becomes '?'.
+std::string ascii_for_debug_font(const std::string& in) {
+    static const char kLatin1[] = "AAAAAAACEEEEIIIIDNOOOOOxOUUUUYTsaaaaaaaceeeeiiiidnooooo/ouuuuyty";
+    std::string out;
+    out.reserve(in.size());
+    for (size_t i = 0; i < in.size();) {
+        const unsigned char c = static_cast<unsigned char>(in[i]);
+        unsigned cp = c;
+        size_t n = 1;
+        if (c >= 0xF0) { cp = '?'; n = 4; }
+        else if (c >= 0xE0) { cp = '?'; n = 3; }
+        else if (c >= 0xC0 && i + 1 < in.size()) { cp = ((c & 0x1Fu) << 6) | (static_cast<unsigned char>(in[i + 1]) & 0x3Fu); n = 2; }
+        i += n;
+        if (cp < 0x80) out += char(cp);
+        else if (cp == 0xDF) out += "ss";
+        else if (cp == 0xC6) out += "AE";
+        else if (cp == 0xE6) out += "ae";
+        else if (cp == 0xAB || cp == 0xBB) out += '"';
+        else if (cp == 0xB7) out += '.';
+        else if (cp == 0xA0) out += ' ';
+        else if (cp >= 0xC0 && cp <= 0xFF) out += kLatin1[cp - 0xC0];
+        else out += '?';
+    }
+    return out;
+}
+}  // namespace
+
 // Small on-screen text using SDL's built-in 8x8 debug font, scaled for high-DPI screens.
-void Presenter::draw_text_lines(const std::vector<std::string>& lines, bool top) {
+void Presenter::draw_text_lines(const std::vector<std::string>& raw_lines, bool top) {
+    std::vector<std::string> lines;
+    lines.reserve(raw_lines.size());
+    for (const auto& l : raw_lines) lines.push_back(ascii_for_debug_font(l));
     int out_w = 0, out_h = 0;
     SDL_GetCurrentRenderOutputSize(renderer_, &out_w, &out_h);
     const float scale = float(std::max(1, std::min(out_w / 480, out_h / 320)));
