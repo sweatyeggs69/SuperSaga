@@ -331,575 +331,575 @@ msgstr "Informazioni"
 msgid "An unofficial project. Not affiliated with Nintendo."
 msgstr "Un progetto non ufficiale. Non affiliato a Nintendo."
 
-#: src/app/app.cpp:295
-msgid "https://github.com/sweatyeggs69/SuperSaga"
-msgstr "https://github.com/sweatyeggs69/SuperSaga"
+#: src/app/app.cpp:296
+msgid "Open in your browser"
+msgstr "Apri nel browser"
 
-#: src/app/app.cpp:307
+#: src/app/app.cpp:308
 msgid "SuperSaga license (MIT)"
 msgstr "Licenza di SuperSaga (MIT)"
 
-#: src/app/app.cpp:308
+#: src/app/app.cpp:309
 msgid "Third-party notices"
 msgstr "Avvisi di terze parti"
 
-#: src/app/app.cpp:309
+#: src/app/app.cpp:310
 msgid "DM Sans font license (SIL OFL 1.1)"
 msgstr "Licenza del font DM Sans (SIL OFL 1.1)"
 
-#: src/app/app.cpp:346
+#: src/app/app.cpp:347
 msgid "The saved ROM changed since it was chosen. Please choose it again."
 msgstr "La ROM salvata è cambiata da quando è stata scelta. Sceglila di nuovo."
 
-#: src/app/app.cpp:368
+#: src/app/app.cpp:369
 msgid "Game Boy Advance ROM"
 msgstr "ROM Game Boy Advance"
 
-#: src/app/app.cpp:369
+#: src/app/app.cpp:370
 msgid "All files"
 msgstr "Tutti i file"
 
-#: src/app/app.cpp:401
+#: src/app/app.cpp:402
 msgid "The BIOS file is not the retail GBA BIOS; using the built-in BIOS."
 msgstr "Il file non è il BIOS originale del GBA: verrà usato il BIOS integrato."
 
-#: src/app/app.cpp:439
+#: src/app/app.cpp:440
 msgid "F1 or Esc: settings menu"
 msgstr "F1 o Esc: menu impostazioni"
 
-#: src/app/app.cpp:642
+#: src/app/app.cpp:643
 msgid "{0}, native on your computer"
 msgstr "{0}, nativo sul tuo computer"
 
-#: src/app/app.cpp:645
+#: src/app/app.cpp:646
 msgid "To play, choose your own copy of the game: a ROM file dumped from your cartridge of {0}."
 msgstr "Per giocare, scegli la tua copia del gioco: un file ROM estratto dalla tua cartuccia di {0}."
 
-#: src/app/app.cpp:648
+#: src/app/app.cpp:649
 msgid "SuperSaga only remembers where the file is. It never copies, uploads or changes it."
 msgstr "SuperSaga ricorda solo dove si trova il file. Non lo copia, non lo carica e non lo modifica mai."
 
-#: src/app/app.cpp:654
+#: src/app/app.cpp:655
 msgid "Choose ROM..."
 msgstr "Scegli la ROM..."
 
-#: src/app/app.cpp:663
+#: src/app/app.cpp:664
 msgid "Quit"
 msgstr "Esci"
 
-#: src/app/app.cpp:673
+#: src/app/app.cpp:674
 msgid "just now"
 msgstr "proprio ora"
 
-#: src/app/app.cpp:674
+#: src/app/app.cpp:675
 msgid "1 minute ago"
 msgstr "1 minuto fa"
 
-#: src/app/app.cpp:674
+#: src/app/app.cpp:675
 msgid "{0} minutes ago"
 msgstr "{0} minuti fa"
 
-#: src/app/app.cpp:675
+#: src/app/app.cpp:676
 msgid "1 hour ago"
 msgstr "1 ora fa"
 
-#: src/app/app.cpp:675
+#: src/app/app.cpp:676
 msgid "{0} hours ago"
 msgstr "{0} ore fa"
 
-#: src/app/app.cpp:676
+#: src/app/app.cpp:677
 msgid "1 day ago"
 msgstr "1 giorno fa"
 
-#: src/app/app.cpp:676
+#: src/app/app.cpp:677
 msgid "{0} days ago"
 msgstr "{0} giorni fa"
 
-#: src/app/app.cpp:701
+#: src/app/app.cpp:702
 msgid "Resume"
 msgstr "Riprendi"
 
-#: src/app/app.cpp:703
+#: src/app/app.cpp:704
 msgid "Restart"
 msgstr "Ricomincia"
 
-#: src/app/app.cpp:709
+#: src/app/app.cpp:710
 msgid "Continue"
 msgstr "Continua"
 
-#: src/app/app.cpp:712
+#: src/app/app.cpp:713
 msgid "Play from the title screen"
 msgstr "Gioca dalla schermata del titolo"
 
-#: src/app/app.cpp:715
+#: src/app/app.cpp:716
 msgid "Play"
 msgstr "Gioca"
 
-#: src/app/app.cpp:719
+#: src/app/app.cpp:720
 msgid "Settings"
 msgstr "Impostazioni"
 
-#: src/app/app.cpp:749
+#: src/app/app.cpp:750
 msgid "ROM verified"
 msgstr "ROM verificata"
 
-#: src/app/app.cpp:751
+#: src/app/app.cpp:752
 msgid "Saved {0}"
 msgstr "Salvato {0}"
 
-#: src/app/app.cpp:825
+#: src/app/app.cpp:833
 msgid "unbound"
 msgstr "non assegnato"
 
-#: src/app/app.cpp:828
+#: src/app/app.cpp:836
 msgid "{0} save  {1} new  {2} load  {3}/{4} slot"
 msgstr "{0} salva  {1} nuovo  {2} carica  {3}/{4} slot"
 
-#: src/app/app.cpp:831
+#: src/app/app.cpp:839
 msgid "save {0}; save to new slot {1}; load {2}; previous slot {3}; next slot {4}"
 msgstr "salva {0}; salva in un nuovo slot {1}; carica {2}; slot precedente {3}; slot successivo {4}"
 
-#: src/app/app.cpp:862
+#: src/app/app.cpp:870
 msgid "Slot {0} overwritten"
 msgstr "Slot {0} sovrascritto"
 
-#: src/app/app.cpp:862
+#: src/app/app.cpp:870
 msgid "State saved to slot {0}"
 msgstr "Stato salvato nello slot {0}"
 
-#: src/app/app.cpp:864
+#: src/app/app.cpp:872
 msgid "Could not save the state"
 msgstr "Impossibile salvare lo stato"
 
-#: src/app/app.cpp:865
+#: src/app/app.cpp:873
 msgid "Overwrote {0}."
 msgstr "{0} sovrascritto."
 
-#: src/app/app.cpp:865
+#: src/app/app.cpp:873
 msgid "Saved to {0}."
 msgstr "Salvato in {0}."
 
-#: src/app/app.cpp:878
+#: src/app/app.cpp:886
 msgid "All {0} slots are full. Delete one in the States tab, or save over the current slot."
 msgstr "Tutti i {0} slot sono pieni. Eliminane uno nella scheda Stati o salva sopra lo slot attuale."
 
-#: src/app/app.cpp:880
+#: src/app/app.cpp:888
 msgid "No empty slot"
 msgstr "Nessuno slot libero"
 
-#: src/app/app.cpp:907
+#: src/app/app.cpp:915
 msgid "{0} is empty."
 msgstr "{0} è vuoto."
 
-#: src/app/app.cpp:918
+#: src/app/app.cpp:926
 msgid "Could not load the state"
 msgstr "Impossibile caricare lo stato"
 
-#: src/app/app.cpp:926
+#: src/app/app.cpp:934
 msgid "State loaded from slot {0}"
 msgstr "Stato caricato dallo slot {0}"
 
-#: src/app/app.cpp:927
+#: src/app/app.cpp:935
 msgid "Loaded {0}."
 msgstr "{0} caricato."
 
-#: src/app/app.cpp:953
+#: src/app/app.cpp:961
 msgid "No ROM is chosen yet."
 msgstr "Non è ancora stata scelta una ROM."
 
-#: src/app/app.cpp:968
+#: src/app/app.cpp:976
 msgid "Couldn't auto-load the save state"
 msgstr "Impossibile caricare automaticamente lo stato"
 
-#: src/app/app.cpp:968
+#: src/app/app.cpp:976
 msgid "Couldn't start the game"
 msgstr "Impossibile avviare il gioco"
 
-#: src/app/app.cpp:985
+#: src/app/app.cpp:993
 msgid "Choose your ROM first (Game tab)."
 msgstr "Prima scegli la tua ROM (scheda Gioco)."
 
-#: src/app/app.cpp:988
+#: src/app/app.cpp:996
 msgid "Shortcuts in game: {0}. Current: {1}. Change them in Controls."
 msgstr "Scorciatoie in gioco: {0}. Attuale: {1}. Modificale in Comandi."
 
-#: src/app/app.cpp:991
+#: src/app/app.cpp:999
 msgid "Undo last load"
 msgstr "Annulla l'ultimo caricamento"
 
-#: src/app/app.cpp:996
+#: src/app/app.cpp:1004
 msgid "Went back to before the last load."
 msgstr "Tornato a prima dell'ultimo caricamento."
 
-#: src/app/app.cpp:1001
+#: src/app/app.cpp:1009
 msgid "Show folder"
 msgstr "Mostra cartella"
 
-#: src/app/app.cpp:1004
+#: src/app/app.cpp:1012
 msgid "Save to new slot"
 msgstr "Salva in un nuovo slot"
 
-#: src/app/app.cpp:1008
+#: src/app/app.cpp:1016
 msgid "Overwrite the current slot"
 msgstr "Sovrascrivi lo slot attuale"
 
-#: src/app/app.cpp:1008
+#: src/app/app.cpp:1016
 msgid "Save to a new slot each time"
 msgstr "Salva ogni volta in un nuovo slot"
 
-#: src/app/app.cpp:1010
+#: src/app/app.cpp:1018
 msgid "Save state shortcut:"
 msgstr "Scorciatoia di salvataggio:"
 
-#: src/app/app.cpp:1055
+#: src/app/app.cpp:1063
 msgid "Unusable"
 msgstr "Inutilizzabile"
 
-#: src/app/app.cpp:1055
+#: src/app/app.cpp:1063
 msgid "Empty"
 msgstr "Vuoto"
 
-#: src/app/app.cpp:1074
+#: src/app/app.cpp:1082
 msgid "%b %d, %H:%M"
 msgstr "%d/%m, %H:%M"
 
-#: src/app/app.cpp:1075
+#: src/app/app.cpp:1083
 msgid "{0}  |  {1} played"
 msgstr "{0}  |  {1} di gioco"
 
-#: src/app/app.cpp:1077
+#: src/app/app.cpp:1085
 msgid "No state saved yet"
 msgstr "Nessuno stato salvato"
 
-#: src/app/app.cpp:1085
+#: src/app/app.cpp:1093
 msgid "Save"
 msgstr "Salva"
 
-#: src/app/app.cpp:1089
+#: src/app/app.cpp:1097
 msgid "Load"
 msgstr "Carica"
 
-#: src/app/app.cpp:1098
+#: src/app/app.cpp:1106
 msgid "Rename..."
 msgstr "Rinomina..."
 
-#: src/app/app.cpp:1102
+#: src/app/app.cpp:1110
 msgid "Export..."
 msgstr "Esporta..."
 
-#: src/app/app.cpp:1105
+#: src/app/app.cpp:1113
 msgid "SuperSaga save state"
 msgstr "Stato di SuperSaga"
 
-#: src/app/app.cpp:1115
+#: src/app/app.cpp:1123
 msgid "Import into this slot..."
 msgstr "Importa in questo slot..."
 
-#: src/app/app.cpp:1128
+#: src/app/app.cpp:1136
 msgid "Delete..."
 msgstr "Elimina..."
 
-#: src/app/app.cpp:1140
+#: src/app/app.cpp:1148
 msgid "Rename state"
 msgstr "Rinomina stato"
 
-#: src/app/app.cpp:1142
+#: src/app/app.cpp:1150
 msgid "Label for {0}:"
 msgstr "Nome per {0}:"
 
-#: src/app/app.cpp:1156
+#: src/app/app.cpp:1164
 msgid "Delete state?"
 msgstr "Eliminare lo stato?"
 
-#: src/app/app.cpp:1158
+#: src/app/app.cpp:1166
 msgid "Delete {0}? It is moved to the Trash."
 msgstr "Eliminare {0}? Verrà spostato nel cestino."
 
-#: src/app/app.cpp:1159
+#: src/app/app.cpp:1167
 msgid "Delete"
 msgstr "Elimina"
 
-#: src/app/app.cpp:1162
+#: src/app/app.cpp:1170
 msgid "{0} moved to the Trash."
 msgstr "{0} spostato nel cestino."
 
-#: src/app/app.cpp:1183
+#: src/app/app.cpp:1191
 msgid "Could not read {0}"
 msgstr "Impossibile leggere {0}"
 
-#: src/app/app.cpp:1202
+#: src/app/app.cpp:1210
 msgid "Could not write the save file {0}"
 msgstr "Impossibile scrivere il file di salvataggio {0}"
 
-#: src/app/app.cpp:1212
+#: src/app/app.cpp:1220
 msgid "Imported {0}."
 msgstr "{0} importato."
 
-#: src/app/app.cpp:1213
+#: src/app/app.cpp:1221
 msgid "Imported {0}. The previous save was backed up."
 msgstr "{0} importato. Il salvataggio precedente è stato copiato."
 
-#: src/app/app.cpp:1214
+#: src/app/app.cpp:1222
 msgid "The game was restarted."
 msgstr "Il gioco è stato riavviato."
 
-#: src/app/app.cpp:1225
+#: src/app/app.cpp:1233
 msgid "There is no save to export yet. Play the game first."
 msgstr "Non c'è ancora un salvataggio da esportare. Prima gioca."
 
-#: src/app/app.cpp:1232
+#: src/app/app.cpp:1240
 msgid "Could not write {0}"
 msgstr "Impossibile scrivere {0}"
 
-#: src/app/app.cpp:1235
+#: src/app/app.cpp:1243
 msgid "Exported to {0} (raw {1} KiB, works in mGBA, VBA-M and RetroArch)."
 msgstr "Esportato in {0} (grezzo, {1} KiB, funziona in mGBA, VBA-M e RetroArch)."
 
-#: src/app/app.cpp:1240
+#: src/app/app.cpp:1248
 msgid "Saves"
 msgstr "Salvataggi"
 
-#: src/app/app.cpp:1243
+#: src/app/app.cpp:1251
 msgid "Show save folder"
 msgstr "Mostra cartella salvataggi"
 
-#: src/app/app.cpp:1249
+#: src/app/app.cpp:1257
 msgid "Import save..."
 msgstr "Importa salvataggio..."
 
-#: src/app/app.cpp:1252
+#: src/app/app.cpp:1260
 msgid "Game saves"
 msgstr "Salvataggi di gioco"
 
-#: src/app/app.cpp:1262
+#: src/app/app.cpp:1270
 msgid "Export save..."
 msgstr "Esporta salvataggio..."
 
-#: src/app/app.cpp:1265
+#: src/app/app.cpp:1273
 msgid "Game save"
 msgstr "Salvataggio di gioco"
 
-#: src/app/app.cpp:1275
+#: src/app/app.cpp:1283
 msgid "Restore backup..."
 msgstr "Ripristina copia..."
 
-#: src/app/app.cpp:1278
+#: src/app/app.cpp:1286
 msgid "Imports .sav / .srm battery saves from mGBA, VBA-M, RetroArch and others."
 msgstr "Importa salvataggi .sav / .srm da mGBA, VBA-M, RetroArch e altri."
 
-#: src/app/app.cpp:1286
+#: src/app/app.cpp:1294
 msgid "Replace your save?"
 msgstr "Sostituire il salvataggio?"
 
-#: src/app/app.cpp:1291
+#: src/app/app.cpp:1299
 msgid "Use {0} as your save?"
 msgstr "Usare {0} come salvataggio?"
 
-#: src/app/app.cpp:1293
+#: src/app/app.cpp:1301
 msgid "Your current save is backed up first (the last 10 are kept)."
 msgstr "Il salvataggio attuale viene prima copiato (si tengono gli ultimi 10)."
 
-#: src/app/app.cpp:1295
+#: src/app/app.cpp:1303
 msgid "Importing restarts the game; unsaved progress is lost."
 msgstr "L'importazione riavvia il gioco; i progressi non salvati vanno persi."
 
-#: src/app/app.cpp:1299
+#: src/app/app.cpp:1307
 msgid "Replace save"
 msgstr "Sostituisci"
 
-#: src/app/app.cpp:1312
+#: src/app/app.cpp:1320
 msgid "Restore a backup"
 msgstr "Ripristina una copia"
 
-#: src/app/app.cpp:1318
+#: src/app/app.cpp:1326
 msgid "No backups yet. One is made every time a save is replaced."
 msgstr "Nessuna copia per ora. Ne viene creata una ogni volta che un salvataggio è sostituito."
 
-#: src/app/app.cpp:1331
+#: src/app/app.cpp:1339
 msgid "the backup from {0}"
 msgstr "la copia del {0}"
 
-#: src/app/app.cpp:1331
+#: src/app/app.cpp:1339
 msgid "backup"
 msgstr "copia"
 
-#: src/app/app.cpp:1345
+#: src/app/app.cpp:1353
 msgid "Mario and Luigi"
 msgstr "Mario e Luigi"
 
-#: src/app/app.cpp:1350
+#: src/app/app.cpp:1358
 msgid "Infinite HP"
 msgstr "PV infiniti"
 
-#: src/app/app.cpp:1350
+#: src/app/app.cpp:1358
 msgid "Both brothers' HP stays full, so damage never drains it."
 msgstr "I PV di entrambi i fratelli restano al massimo, i danni non li riducono mai."
 
-#: src/app/app.cpp:1351
+#: src/app/app.cpp:1359
 msgid "Infinite BP"
 msgstr "PF infiniti"
 
-#: src/app/app.cpp:1351
+#: src/app/app.cpp:1359
 msgid "Bros. Points refill after every Bros. Attack."
 msgstr "I Punti Fratelli si ricaricano dopo ogni Attacco Fratelli."
 
-#: src/app/app.cpp:1352
+#: src/app/app.cpp:1360
 msgid "Max coins"
 msgstr "Monete al massimo"
 
-#: src/app/app.cpp:1352
+#: src/app/app.cpp:1360
 msgid "Your coins stay at 9999."
 msgstr "Le tue monete restano a 9999."
 
-#: src/app/app.cpp:1364
+#: src/app/app.cpp:1372
 msgid "Cheats are off while RetroAchievements hardcore mode is on."
 msgstr "I trucchi sono disattivati nella modalità hardcore di RetroAchievements."
 
-#: src/app/app.cpp:1365
+#: src/app/app.cpp:1373
 msgid "HP and BP refill up to each brother's current maximum. Cheats stay on until you turn them off."
 msgstr "PV e PF si ricaricano fino al massimo attuale di ogni fratello. I trucchi restano attivi finché non li disattivi."
 
-#: src/app/app.cpp:1372
+#: src/app/app.cpp:1380
 msgid "Game ROM"
 msgstr "ROM del gioco"
 
-#: src/app/app.cpp:1375
+#: src/app/app.cpp:1383
 msgid "{0}, header match (fingerprint not pinned yet)"
 msgstr "{0}, intestazione corrispondente (impronta non ancora fissata)"
 
-#: src/app/app.cpp:1377
+#: src/app/app.cpp:1385
 msgid "{0}, verified"
 msgstr "{0}, verificata"
 
-#: src/app/app.cpp:1387
+#: src/app/app.cpp:1395
 msgid "No ROM chosen"
 msgstr "Nessuna ROM scelta"
 
-#: src/app/app.cpp:1389
+#: src/app/app.cpp:1397
 msgid "Change ROM..."
 msgstr "Cambia ROM..."
 
-#: src/app/app.cpp:1396
+#: src/app/app.cpp:1404
 msgid "Startup"
 msgstr "Avvio"
 
-#: src/app/app.cpp:1398
+#: src/app/app.cpp:1406
 msgid "Auto-load save state on launch"
 msgstr "Carica lo stato all'avvio"
 
-#: src/app/app.cpp:1399
+#: src/app/app.cpp:1407
 msgid "Opening SuperSaga goes straight back to where you left off (your most recent save state)."
 msgstr "All'apertura SuperSaga riprende da dove avevi lasciato (il tuo stato più recente)."
 
-#: src/app/app.cpp:1400
+#: src/app/app.cpp:1408
 msgid "Hold Shift while opening SuperSaga to see this menu instead."
 msgstr "Tieni premuto Maiusc all'apertura di SuperSaga per vedere invece questo menu."
 
-#: src/app/app.cpp:1404
+#: src/app/app.cpp:1412
 msgid "BIOS (optional)"
 msgstr "BIOS (facoltativo)"
 
-#: src/app/app.cpp:1410
+#: src/app/app.cpp:1418
 msgid "The BIOS file could not be read; using the built-in BIOS."
 msgstr "Impossibile leggere il file del BIOS: verrà usato il BIOS integrato."
 
-#: src/app/app.cpp:1413
+#: src/app/app.cpp:1421
 msgid "Built-in BIOS. No file is needed."
 msgstr "BIOS integrato. Non serve alcun file."
 
-#: src/app/app.cpp:1417
+#: src/app/app.cpp:1425
 msgid "Retail GBA BIOS verified: the Game Boy logo plays when the game starts, and the game runs on this BIOS."
 msgstr "BIOS originale del GBA verificato: il logo Game Boy appare all'avvio e il gioco usa questo BIOS."
 
-#: src/app/app.cpp:1422
+#: src/app/app.cpp:1430
 msgid "Use a BIOS file..."
 msgstr "Usa un file BIOS..."
 
-#: src/app/app.cpp:1422
+#: src/app/app.cpp:1430
 msgid "Use the built-in BIOS"
 msgstr "Usa il BIOS integrato"
 
-#: src/app/app.cpp:1427
+#: src/app/app.cpp:1435
 msgid "Takes effect the next time the game starts."
 msgstr "Ha effetto al prossimo avvio del gioco."
 
-#: src/app/app.cpp:1429
+#: src/app/app.cpp:1437
 msgid "Shortcut"
 msgstr "Collegamento"
 
-#: src/app/app.cpp:1430
+#: src/app/app.cpp:1438
 msgid "A shortcut starts the game directly, skipping the launcher."
 msgstr "Un collegamento avvia il gioco direttamente, senza il launcher."
 
-#: src/app/app.cpp:1437
+#: src/app/app.cpp:1445
 msgid "Applications"
 msgstr "Applicazioni"
 
-#: src/app/app.cpp:1439
+#: src/app/app.cpp:1447
 msgid "Start menu"
 msgstr "menu Start"
 
-#: src/app/app.cpp:1441
+#: src/app/app.cpp:1449
 msgid "applications menu"
 msgstr "menu applicazioni"
 
-#: src/app/app.cpp:1452
+#: src/app/app.cpp:1460
 msgid "Desktop"
 msgstr "Scrivania"
 
-#: src/app/app.cpp:1454
+#: src/app/app.cpp:1462
 msgid "Update {0} shortcut"
 msgstr "Aggiorna collegamento ({0})"
 
-#: src/app/app.cpp:1454
+#: src/app/app.cpp:1462
 msgid "Add to {0}"
 msgstr "Aggiungi a {0}"
 
-#: src/app/app.cpp:1465
+#: src/app/app.cpp:1473
 msgid "Remove"
 msgstr "Rimuovi"
 
-#: src/app/app.cpp:1465
+#: src/app/app.cpp:1473
 msgid "Remove shortcut"
 msgstr "Rimuovi collegamento"
 
-#: src/app/app.cpp:1476
+#: src/app/app.cpp:1484
 msgid "Replace existing item?"
 msgstr "Sostituire l'elemento esistente?"
 
-#: src/app/app.cpp:1481
+#: src/app/app.cpp:1489
 msgid "already exists and was not made by SuperSaga."
 msgstr "esiste già e non è stato creato da SuperSaga."
 
-#: src/app/app.cpp:1482
+#: src/app/app.cpp:1490
 msgid "Replace it? The existing item is moved to the Trash."
 msgstr "Sostituirlo? L'elemento esistente verrà spostato nel cestino."
 
-#: src/app/app.cpp:1483
+#: src/app/app.cpp:1491
 msgid "Replace"
 msgstr "Sostituisci"
 
-#: src/app/app.cpp:1488
+#: src/app/app.cpp:1496
 msgid "Keep it"
 msgstr "Mantienilo"
 
-#: src/app/app.cpp:1489
+#: src/app/app.cpp:1497
 msgid "Left the existing item alone."
 msgstr "L'elemento esistente non è stato toccato."
 
-#: src/app/app.cpp:1595
+#: src/app/app.cpp:1603
 msgid "Exported {0}."
 msgstr "{0} esportato."
 
-#: src/app/app.cpp:1602
+#: src/app/app.cpp:1610
 msgid "Imported into {0}."
 msgstr "Importato in {0}."
 
-#: src/app/app.cpp:1611
+#: src/app/app.cpp:1619
 msgid "Could not read that BIOS file."
 msgstr "Impossibile leggere quel file BIOS."
 
-#: src/app/app.cpp:1613
+#: src/app/app.cpp:1621
 msgid "BIOS set. It is used the next time the game starts."
 msgstr "BIOS impostato. Verrà usato al prossimo avvio del gioco."
 
@@ -1023,7 +1023,7 @@ msgstr "Quello stato è stato creato con un'altra ROM."
 msgid "There is nothing to undo."
 msgstr "Non c'è nulla da annullare."
 
-#: src/app/theme.cpp:291
+#: src/app/theme.cpp:292
 msgid "None"
 msgstr "Nessuna"
 
