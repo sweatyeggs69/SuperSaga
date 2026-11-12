@@ -127,6 +127,7 @@ void apply(float ui_scale) {
     col[ImGuiCol_TableRowBg] = ImVec4(0, 0, 0, 0);
     col[ImGuiCol_TableRowBgAlt] = alpha(c.ink, 0.025f);
     col[ImGuiCol_TextSelectedBg] = alpha(c.accent, 0.35f);
+    col[ImGuiCol_TextLink] = c.accent;  // About tab GitHub link
     col[ImGuiCol_NavCursor] = c.highlight;
     col[ImGuiCol_ModalWindowDimBg] = alpha(mix(c.surface, ImVec4(0, 0, 0, 1), 0.5f), 0.6f);
 }
