@@ -94,7 +94,7 @@ private:
     void draw_ui();
     void draw_first_run();
     void draw_launcher();
-    void draw_language_picker();
+    void draw_language_picker(float x);
     void draw_game_tab(Config& config);
     void draw_save_section();
     void draw_shortcut_controls(bool big);
@@ -751,23 +751,30 @@ void App::draw_launcher() {
         if (has_latest && !(game_ && game_paused_)) right = trf("Saved {0}", time_ago(std::time_t(latest_info->saved_at))) + "  ·  " + right;
         const float rw = ImGui::CalcTextSize(right.c_str()).x;
         dl->AddText(ImGui::GetFont(), ImGui::GetFontSize(), ImVec2(q.x + bw - rw, q.y), faint, right.c_str());
+        // The language button sits in the middle of the row, or in the middle of the gap between the
+        // two sides when a long status leaves no room at the centre.
+        const float left_end = q.x + 12 + ImGui::CalcTextSize(tr("ROM verified")).x;
+        const float right_start = q.x + bw - rw;
+        const float lw = ImGui::CalcTextSize(i18n::language_name()).x;
+        float lx = q.x + (bw - lw) * 0.5f;
+        if (lx < left_end + 16 || lx + lw > right_start - 16) lx = (left_end + right_start - lw) * 0.5f;
+        ImGui::PopFont();
+        draw_language_picker(lx);
+        ImGui::PushFont(theme::font_small());
+        ImGui::SetCursorScreenPos(q);
         // The line reserves less than its full height: the card's bottom padding plus the font's
         // descent and line gap left the footer looking further from the edge than the sides.
         ImGui::Dummy(ImVec2(bw, std::max(1.0f, lh - kFooterTrim)));
         ImGui::PopFont();
     }
-    draw_language_picker();
 
     end_card();
 }
 
-// The language of the launcher and menus: a small text button under the footer that names the
-// current language and opens a list of the others, each in its own language.
-void App::draw_language_picker() {
-    ImGui::Dummy(ImVec2(0, 2));
-    ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(0, 0));
-    if (theme::text_button(i18n::language_name(), theme::font_small())) ImGui::OpenPopup("##language");
-    ImGui::PopStyleVar();
+// The language of the launcher and menus: a small text button in the footer row (its text starts
+// at screen x) that names the current language and opens a list of them, each in its own language.
+void App::draw_language_picker(float x) {
+    if (theme::text_button(i18n::language_name(), theme::font_small(), x)) ImGui::OpenPopup("##language");
     const ImVec2 at(ImGui::GetItemRectMin().x + ImGui::GetItemRectSize().x * 0.5f, ImGui::GetItemRectMin().y - 6.0f);
     ImGui::SetNextWindowPos(at, ImGuiCond_Appearing, ImVec2(0.5f, 1.0f));
     ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8, 8));

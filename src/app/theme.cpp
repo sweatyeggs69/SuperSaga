@@ -298,14 +298,15 @@ bool binding_cell(const char* id, const char* text, bool waiting, float width) {
     return pressed;
 }
 
-bool text_button(const char* label, ImFont* font) {
+bool text_button(const char* label, ImFont* font, float x) {
     const Palette& c = palette();
     if (font) ImGui::PushFont(font);
     const char* end = ImGui::FindRenderedTextEnd(label);
     const ImVec2 ts = ImGui::CalcTextSize(label, end);
     const ImVec2 pad(6.0f, 2.0f);
     const ImVec2 size(ts.x + pad.x * 2, ts.y + pad.y * 2);
-    ImGui::SetCursorPosX((ImGui::GetWindowSize().x - size.x) * 0.5f);
+    if (x >= 0.0f) ImGui::SetCursorScreenPos(ImVec2(x - pad.x, ImGui::GetCursorScreenPos().y - pad.y));
+    else ImGui::SetCursorPosX((ImGui::GetWindowSize().x - size.x) * 0.5f);
     const ImVec2 pos = ImGui::GetCursorScreenPos();
     const bool pressed = nav_button(label, size);
     const bool hovered = ImGui::IsItemHovered();
