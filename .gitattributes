@@ -1,0 +1,3 @@
+# Translation files are read byte for byte by the tests and embedded as-is; keep LF everywhere.
+assets/lang/*.po text eol=lf
+assets/lang/*.pot text eol=lf

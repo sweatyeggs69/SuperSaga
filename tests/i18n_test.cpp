@@ -64,7 +64,10 @@ int main() {
         // messages.pot has empty msgstr, so parse_po skips them: read the msgids directly.
         std::istringstream in(read(std::string(SUPERSAGA_LANG_DIR) + "/messages.pot"));
         std::string text, line;
-        while (std::getline(in, line)) text += line + "\n";
+        while (std::getline(in, line)) {
+            if (!line.empty() && line.back() == '\r') line.pop_back();  // Windows checkouts use CRLF
+            text += line + "\n";
+        }
         // Give each entry a placeholder translation so parse_po returns its msgid.
         std::string filled;
         std::istringstream in2(text);
