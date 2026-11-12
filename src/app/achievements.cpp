@@ -21,6 +21,7 @@
 #include "app/config.h"
 #include "app/credentials.h"
 #include "app/http.h"
+#include "app/i18n.h"
 #include "app/theme.h"
 #include "app/toast.h"
 #include "gba/gba.h"
@@ -48,6 +49,8 @@ extern "C" {
 
 namespace supersaga {
 namespace fs = std::filesystem;
+using i18n::tr;
+using i18n::trf;
 
 std::string ra_md5_hex(const std::uint8_t* data, std::size_t size) {
     md5_state_t st;
@@ -93,6 +96,11 @@ namespace {
 constexpr int kAchievementToastMs = 5000;
 // The server adds this pseudo-achievement when it does not accept hardcore unlocks from the client.
 constexpr std::uint32_t kWarningAchievementId = 101000001;
+// rcheevos' achievement list headings, shown through tr() (rc_client_create_achievement_list).
+[[maybe_unused]] constexpr const char* kBucketLabels[] = {
+    N_("Locked"), N_("Unlocked"), N_("Recently Unlocked"), N_("Active Challenges"), N_("Almost There"),
+    N_("Unsupported"), N_("Unofficial"), N_("Unlocks Not Synced to Server"),
+};
 
 struct Badge {
     enum State { Loading, Ready, Failed } state = Loading;
@@ -217,7 +225,7 @@ struct Achievements::Impl {
         user.erase(0, user.find_first_not_of(" \t"));
         user.erase(user.find_last_not_of(" \t") + 1);
         if (user.empty() || !pass_buf[0]) {
-            set_login_message("Enter your RetroAchievements username and password.", true);
+            set_login_message(tr("Enter your RetroAchievements username and password."), true);
             return;
         }
         login = Login::SigningIn;
@@ -246,11 +254,11 @@ struct Achievements::Impl {
             login_message.clear();
             std::string user = u && u->username ? u->username : user_buf;
             if (u && u->token && !credentials::store(config.pref_dir(), user, u->token))
-                set_login_message("Signed in, but the login could not be saved; you will be asked again next time.",
+                set_login_message(tr("Signed in, but the login could not be saved; you will be asked again next time."),
                                   true);
             config.set_string("ra.user", user);
             std::string name = u && u->display_name ? u->display_name : user;
-            notify("Signed in to RetroAchievements", name + (u ? ", " + std::to_string(u->score) + " points" : ""),
+            notify(tr("Signed in to RetroAchievements"), u ? trf("{0}, {1} points", name, u->score) : name,
                    u && u->avatar_url ? u->avatar_url : "", 3500, toast::Style::Success);
             maybe_load_game();
             return;
@@ -260,9 +268,9 @@ struct Achievements::Impl {
         if (result == RC_INVALID_CREDENTIALS || result == RC_EXPIRED_TOKEN || result == RC_ACCESS_DENIED) {
             // A rejected saved token is useless; forget it.
             credentials::erase(config.pref_dir(), config.get_string("ra.user"));
-            set_login_message("Sign-in failed: " + why, true);
+            set_login_message(trf("Sign-in failed: {0}", why), true);
         } else {
-            set_login_message("Could not sign in: " + why, true);
+            set_login_message(trf("Could not sign in: {0}", why), true);
         }
     }
 
@@ -272,7 +280,7 @@ struct Achievements::Impl {
         credentials::erase(config.pref_dir(), config.get_string("ra.user"));
         login = Login::SignedOut;
         game_message.clear();
-        set_login_message("Signed out.", false);
+        set_login_message(tr("Signed out."), false);
     }
 
     // ---- game ------------------------------------------------------------------------------
@@ -280,7 +288,7 @@ struct Achievements::Impl {
     void maybe_load_game() {
         if (game_hash.empty() || game_requested || !enabled() || login != Login::SignedIn) return;
         game_requested = true;
-        game_message = "Loading achievements...";
+        game_message = tr("Loading achievements...");
         game_message_error = false;
         rc_client_begin_load_game(client, game_hash.c_str(), &Impl::on_game_loaded, nullptr);
     }
@@ -294,11 +302,11 @@ struct Achievements::Impl {
             game_requested = result == RC_NO_GAME_LOADED;  // unknown ROM: do not ask again this session
             game_message_error = true;
             if (result == RC_NO_GAME_LOADED)
-                game_message = "RetroAchievements does not know this ROM (MD5 " + game_hash + ").";
+                game_message = trf("RetroAchievements does not know this ROM (MD5 {0}).", game_hash);
             else if (result == RC_ABORTED)
                 game_message.clear();
             else
-                game_message = std::string("Could not load achievements: ") + (error && *error ? error : rc_error_str(result));
+                game_message = trf("Could not load achievements: {0}", error && *error ? error : rc_error_str(result));
             return;
         }
         game_message.clear();
@@ -307,18 +315,18 @@ struct Achievements::Impl {
         rc_client_get_user_game_summary(client, &sum);
         std::string body;
         if (sum.num_core_achievements == 0) {
-            body = "This game has no achievements yet.";
+            body = tr("This game has no achievements yet.");
         } else {
-            body = std::to_string(sum.num_unlocked_achievements) + " of " + std::to_string(sum.num_core_achievements) +
-                   " achievements unlocked";
-            body += rc_client_get_hardcore_enabled(client) ? " (hardcore)" : "";
+            body = trf(rc_client_get_hardcore_enabled(client) ? N_("{0} of {1} achievements unlocked (hardcore)")
+                                                              : N_("{0} of {1} achievements unlocked"),
+                       sum.num_unlocked_achievements, sum.num_core_achievements);
         }
         notify(g && g->title ? g->title : "RetroAchievements", body, g && g->badge_url ? g->badge_url : "", 4500,
                toast::Style::Info);
         // Hardcore requires a run without save states: a session that loaded one before the
         // achievements arrived (for example signing in mid-game) starts over.
         if (rc_client_get_hardcore_enabled(client) && session_loaded_state && restart) {
-            notify("Hardcore mode", "Restarting the game so achievements can be earned.", "", 4000,
+            notify(tr("Hardcore mode"), tr("Restarting the game so achievements can be earned."), "", 4000,
                    toast::Style::Warning);
             restart_pending = true;
         }
@@ -337,22 +345,22 @@ struct Achievements::Impl {
         switch (e.type) {
             case RC_CLIENT_EVENT_ACHIEVEMENT_TRIGGERED:
                 if (a && config.get_bool("ra.notify_unlocks", true))
-                    notify(a->title, std::to_string(a->points) + (a->points == 1 ? " point. " : " points. ") +
+                    notify(a->title, (a->points == 1 ? std::string(tr("1 point.")) : trf("{0} points.", a->points)) + " " +
                                          (a->description ? a->description : ""),
                            a->badge_url ? a->badge_url : "", kAchievementToastMs, toast::Style::Achievement);
                 break;
             case RC_CLIENT_EVENT_GAME_COMPLETED: {
                 const rc_client_game_t* g = rc_client_get_game_info(client);
                 bool hc = rc_client_get_hardcore_enabled(client);
-                notify(std::string(hc ? "Mastered " : "Completed ") + (g && g->title ? g->title : "the game"),
-                       "Every achievement unlocked. Congratulations!", g && g->badge_url ? g->badge_url : "", 7000,
+                notify(trf(hc ? N_("Mastered {0}") : N_("Completed {0}"), g && g->title ? g->title : tr("the game")),
+                       tr("Every achievement unlocked. Congratulations!"), g && g->badge_url ? g->badge_url : "", 7000,
                        toast::Style::Achievement);
                 break;
             }
             case RC_CLIENT_EVENT_SUBSET_COMPLETED:
                 if (e.subset)
-                    notify(std::string("Completed ") + (e.subset->title ? e.subset->title : "a set"),
-                           "Every achievement in this set unlocked.", e.subset->badge_url ? e.subset->badge_url : "",
+                    notify(trf("Completed {0}", e.subset->title ? e.subset->title : tr("a set")),
+                           tr("Every achievement in this set unlocked."), e.subset->badge_url ? e.subset->badge_url : "",
                            6000, toast::Style::Achievement);
                 break;
             case RC_CLIENT_EVENT_ACHIEVEMENT_PROGRESS_INDICATOR_SHOW:
@@ -362,26 +370,25 @@ struct Achievements::Impl {
                     Uint64& last = progress_toast_at[a->id];
                     if (last == 0 || now - last > 3000) {
                         last = now;
-                        notify(a->title, std::string("Progress: ") + a->measured_progress,
+                        notify(a->title, trf("Progress: {0}", a->measured_progress),
                                a->badge_url ? a->badge_url : "", 2000, toast::Style::Info);
                     }
                 }
                 break;
             case RC_CLIENT_EVENT_LEADERBOARD_STARTED:
-                if (lb && lb_notes) notify("Leaderboard attempt started", lb->title ? lb->title : "", "", 2500, toast::Style::Info);
+                if (lb && lb_notes) notify(tr("Leaderboard attempt started"), lb->title ? lb->title : "", "", 2500, toast::Style::Info);
                 break;
             case RC_CLIENT_EVENT_LEADERBOARD_FAILED:
-                if (lb && lb_notes) notify("Leaderboard attempt failed", lb->title ? lb->title : "", "", 2500, toast::Style::Info);
+                if (lb && lb_notes) notify(tr("Leaderboard attempt failed"), lb->title ? lb->title : "", "", 2500, toast::Style::Info);
                 break;
             case RC_CLIENT_EVENT_LEADERBOARD_SUBMITTED:
                 if (lb && lb_notes)
-                    notify(std::string("Submitted ") + (lb->tracker_value ? lb->tracker_value : ""),
+                    notify(trf("Submitted {0}", lb->tracker_value ? lb->tracker_value : ""),
                            lb->title ? lb->title : "", "", 3500, toast::Style::Success);
                 break;
             case RC_CLIENT_EVENT_LEADERBOARD_SCOREBOARD:
                 if (lb && lb_notes && e.leaderboard_scoreboard)
-                    notify(std::string("Rank ") + std::to_string(e.leaderboard_scoreboard->new_rank) + " of " +
-                               std::to_string(e.leaderboard_scoreboard->num_entries),
+                    notify(trf("Rank {0} of {1}", e.leaderboard_scoreboard->new_rank, e.leaderboard_scoreboard->num_entries),
                            lb->title ? lb->title : "", "", 3500, toast::Style::Info);
                 break;
             case RC_CLIENT_EVENT_RESET:
@@ -390,16 +397,16 @@ struct Achievements::Impl {
                 break;
             case RC_CLIENT_EVENT_SERVER_ERROR:
                 if (e.server_error)
-                    notify("RetroAchievements error",
-                           e.server_error->error_message ? e.server_error->error_message : "The server refused a request.",
+                    notify(tr("RetroAchievements error"),
+                           e.server_error->error_message ? e.server_error->error_message : tr("The server refused a request."),
                            "", 5000, toast::Style::Warning);
                 break;
             case RC_CLIENT_EVENT_DISCONNECTED:
-                notify("RetroAchievements is offline", "Unlocks are kept and sent when the connection is back.", "", 5000,
+                notify(tr("RetroAchievements is offline"), tr("Unlocks are kept and sent when the connection is back."), "", 5000,
                        toast::Style::Warning);
                 break;
             case RC_CLIENT_EVENT_RECONNECTED:
-                notify("RetroAchievements is back online", "Pending unlocks were sent.", "", 3500, toast::Style::Success);
+                notify(tr("RetroAchievements is back online"), tr("Pending unlocks were sent."), "", 3500, toast::Style::Success);
                 break;
             default:  // challenge indicators and leaderboard trackers: not shown yet
                 break;
@@ -495,35 +502,38 @@ struct Achievements::Impl {
 
 void Achievements::Impl::draw_sign_in() {
     const auto& c = theme::palette();
-    ImGui::TextWrapped("Sign in with your RetroAchievements account to earn achievements while you play.");
+    ImGui::TextWrapped("%s", tr("Sign in with your RetroAchievements account to earn achievements while you play."));
     ImGui::Spacing();
     bool busy = login == Login::SigningIn;
     ImGui::BeginDisabled(busy);
     ImGui::SetNextItemWidth(320);
-    bool go = ImGui::InputText("Username", user_buf, sizeof(user_buf), ImGuiInputTextFlags_EnterReturnsTrue);
+    bool go = ImGui::InputText(tr("Username"), user_buf, sizeof(user_buf), ImGuiInputTextFlags_EnterReturnsTrue);
     ImGui::SetNextItemWidth(320);
-    go |= ImGui::InputText("Password", pass_buf, sizeof(pass_buf),
+    go |= ImGui::InputText(tr("Password"), pass_buf, sizeof(pass_buf),
                            ImGuiInputTextFlags_Password | ImGuiInputTextFlags_EnterReturnsTrue);
-    go |= ImGui::Button(busy ? "Signing in..." : "Sign in");
+    go |= ImGui::Button(busy ? tr("Signing in...") : tr("Sign in"));
     ImGui::EndDisabled();
     if (go && !busy) login_with_password();
     ImGui::SameLine();
-    if (ImGui::Button("Create an account")) SDL_OpenURL("https://retroachievements.org/createaccount.php");
+    if (ImGui::Button(tr("Create an account"))) SDL_OpenURL("https://retroachievements.org/createaccount.php");
     ImGui::PushFont(theme::font_small());
-    ImGui::TextColored(c.ink_muted, "Your password goes only to retroachievements.org and is never saved. SuperSaga keeps");
-    ImGui::TextColored(c.ink_muted, "just the sign-in token, in %s.", credentials::location());
+    ImGui::TextColored(c.ink_muted, "%s",
+                       trf("Your password goes only to retroachievements.org and is never saved. SuperSaga keeps\n"
+                           "just the sign-in token, in {0}.",
+                           credentials::location())
+                           .c_str());
     ImGui::PopFont();
 }
 
 void Achievements::Impl::draw_game() {
     const auto& c = theme::palette();
     if (game_hash.empty()) {
-        ImGui::TextColored(c.ink_muted, "Start the game to see its achievements.");
+        ImGui::TextColored(c.ink_muted, "%s", tr("Start the game to see its achievements."));
         return;
     }
     if (!game_message.empty()) {
         ImGui::TextColored(game_message_error ? c.bad : c.ink_muted, "%s", game_message.c_str());
-        if (game_message_error && !game_requested && login == Login::SignedIn && ImGui::Button("Try again"))
+        if (game_message_error && !game_requested && login == Login::SignedIn && ImGui::Button(tr("Try again")))
             maybe_load_game();
     }
     if (!rc_client_is_game_loaded(client)) return;
@@ -532,11 +542,13 @@ void Achievements::Impl::draw_game() {
     rc_client_user_game_summary_t sum{};
     rc_client_get_user_game_summary(client, &sum);
     if (sum.num_core_achievements == 0)
-        ImGui::TextColored(c.ink_muted, "%s has no achievements yet.", g && g->title ? g->title : "This game");
+        ImGui::TextColored(c.ink_muted, "%s", trf("{0} has no achievements yet.", g && g->title ? g->title : tr("This game")).c_str());
     else
-        ImGui::TextColored(c.ink_muted, "%s: %u of %u unlocked, %u of %u points", g && g->title ? g->title : "Game",
-                           sum.num_unlocked_achievements, sum.num_core_achievements, sum.points_unlocked,
-                           sum.points_core);
+        ImGui::TextColored(c.ink_muted, "%s",
+                           trf("{0}: {1} of {2} unlocked, {3} of {4} points", g && g->title ? g->title : tr("Game"),
+                               sum.num_unlocked_achievements, sum.num_core_achievements, sum.points_unlocked,
+                               sum.points_core)
+                               .c_str());
 
     rc_client_achievement_list_t* list = rc_client_create_achievement_list(
         client, RC_CLIENT_ACHIEVEMENT_CATEGORY_CORE, RC_CLIENT_ACHIEVEMENT_LIST_GROUPING_PROGRESS);
@@ -554,7 +566,7 @@ void Achievements::Impl::draw_game() {
             const rc_client_achievement_bucket_t& bucket = list->buckets[bi];
             bool only_warning = bucket.num_achievements == 1 && bucket.achievements[0]->id == kWarningAchievementId;
             if (only_warning) continue;
-            ImGui::SeparatorText(bucket.label ? bucket.label : "");
+            ImGui::SeparatorText(bucket.label ? tr(bucket.label) : "");
             for (uint32_t i = 0; i < bucket.num_achievements; ++i) {
                 const rc_client_achievement_t* a = bucket.achievements[i];
                 if (a->id == kWarningAchievementId) continue;  // shown in Options instead
@@ -568,7 +580,7 @@ void Achievements::Impl::draw_game() {
                 ImGui::BeginGroup();
                 ImGui::TextColored(unlocked ? c.highlight : c.ink, "%s", a->title ? a->title : "");
                 ImGui::SameLine();
-                ImGui::TextColored(c.ink_muted, "%u pt%s", a->points, a->points == 1 ? "" : "s");
+                ImGui::TextColored(c.ink_muted, "%s", a->points == 1 ? tr("1 pt") : trf("{0} pts", a->points).c_str());
                 ImGui::PushFont(theme::font_small());
                 ImGui::PushTextWrapPos(ImGui::GetContentRegionAvail().x + ImGui::GetCursorPosX() - 8);
                 ImGui::TextColored(c.ink_muted, "%s", a->description ? a->description : "");
@@ -592,11 +604,11 @@ void Achievements::Impl::draw_game() {
 void Achievements::Impl::draw_tab() {
     const auto& c = theme::palette();
     if (!http::available()) {
-        ImGui::TextColored(c.bad, "No network library was found, so RetroAchievements cannot connect.");
+        ImGui::TextColored(c.bad, "%s", tr("No network library was found, so RetroAchievements cannot connect."));
         ImGui::Spacing();
     }
     bool on = enabled();
-    if (theme::toggle(login == Login::SignedIn && on ? "Achievements on" : "Earn achievements while playing", &on)) {
+    if (theme::toggle(login == Login::SignedIn && on ? tr("Achievements on") : tr("Earn achievements while playing"), &on)) {
         config.set_bool("ra.enabled", on);
         if (on) {
             login_with_saved_token();
@@ -614,11 +626,11 @@ void Achievements::Impl::draw_tab() {
             ImGui::TextColored(login_message_error ? c.bad : c.ink_muted, "%s", login_message.c_str());
         if (login == Login::SignedOut && !config.get_string("ra.user").empty() &&
             credentials::load(config.pref_dir(), config.get_string("ra.user"))) {
-            ImGui::Text("Saved account: %s", config.get_string("ra.user").c_str());
+            ImGui::TextUnformatted(trf("Saved account: {0}", config.get_string("ra.user")).c_str());
             ImGui::SameLine();
-            if (ImGui::Button("Try again")) login_with_saved_token();
+            if (ImGui::Button(tr("Try again"))) login_with_saved_token();
             ImGui::SameLine();
-            if (ImGui::Button("Use another account")) sign_out();
+            if (ImGui::Button(tr("Use another account"))) sign_out();
             return;
         }
         if (!user_buf[0] && !config.get_string("ra.user").empty())
@@ -648,9 +660,9 @@ void Achievements::Impl::draw_tab() {
     } else {
         ImGui::SameLine(std::max(ImGui::GetCursorPosX(), right));
     }
-    if (ImGui::Button("Options")) ImGui::OpenPopup("##ra_options");
+    if (ImGui::Button(tr("Options"))) ImGui::OpenPopup("##ra_options");
     ImGui::SameLine();
-    if (ImGui::Button("Sign out")) {
+    if (ImGui::Button(tr("Sign out"))) {
         sign_out();
         return;
     }
@@ -659,7 +671,7 @@ void Achievements::Impl::draw_tab() {
 
     if (ImGui::BeginPopup("##ra_options")) {
         bool hc = config.get_bool("ra.hardcore", false);
-        if (theme::toggle("Hardcore mode", &hc)) {
+        if (theme::toggle(tr("Hardcore mode"), &hc)) {
             if (hc && rc_client_is_game_loaded(client)) {
                 confirm_hardcore = true;
                 ImGui::CloseCurrentPopup();
@@ -669,33 +681,34 @@ void Achievements::Impl::draw_tab() {
             }
         }
         ImGui::PushFont(theme::font_small());
-        ImGui::TextColored(c.ink_muted, "Hardcore unlocks are worth more and are marked on your profile. Loading save");
-        ImGui::TextColored(c.ink_muted, "states is turned off while it is on (your battery save still works).");
+        ImGui::TextColored(c.ink_muted, "%s",
+                           tr("Hardcore unlocks are worth more and are marked on your profile. Loading save\n"
+                              "states is turned off while it is on (your battery save still works)."));
         if (rc_client_get_achievement_info(client, kWarningAchievementId))
-            ImGui::TextColored(c.bad, "RetroAchievements does not accept hardcore unlocks from SuperSaga yet.");
+            ImGui::TextColored(c.bad, "%s", tr("RetroAchievements does not accept hardcore unlocks from SuperSaga yet."));
         ImGui::PopFont();
         ImGui::Separator();
         bool v = config.get_bool("ra.notify_unlocks", true);
-        if (theme::toggle("Show a notification when an achievement unlocks", &v)) config.set_bool("ra.notify_unlocks", v);
+        if (theme::toggle(tr("Show a notification when an achievement unlocks"), &v)) config.set_bool("ra.notify_unlocks", v);
         v = config.get_bool("ra.notify_progress", true);
-        if (theme::toggle("Show progress updates", &v)) config.set_bool("ra.notify_progress", v);
+        if (theme::toggle(tr("Show progress updates"), &v)) config.set_bool("ra.notify_progress", v);
         v = config.get_bool("ra.notify_leaderboards", true);
-        if (theme::toggle("Show leaderboard notices", &v)) config.set_bool("ra.notify_leaderboards", v);
+        if (theme::toggle(tr("Show leaderboard notices"), &v)) config.set_bool("ra.notify_leaderboards", v);
         ImGui::EndPopup();
     }
     if (confirm_hardcore) {
-        ImGui::OpenPopup("Turn on hardcore?");
+        ImGui::OpenPopup(tr("Turn on hardcore?"));
         confirm_hardcore = false;
     }
-    if (ImGui::BeginPopupModal("Turn on hardcore?", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-        ImGui::TextUnformatted("The game restarts from the beginning. Your battery save is kept.");
-        if (ImGui::Button("Restart in hardcore")) {
+    if (ImGui::BeginPopupModal(tr("Turn on hardcore?"), nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+        ImGui::TextUnformatted(tr("The game restarts from the beginning. Your battery save is kept."));
+        if (ImGui::Button(tr("Restart in hardcore"))) {
             config.set_bool("ra.hardcore", true);
             rc_client_set_hardcore_enabled(client, 1);  // raises a reset event: the game restarts
             ImGui::CloseCurrentPopup();
         }
         ImGui::SameLine();
-        if (ImGui::Button("Cancel")) ImGui::CloseCurrentPopup();
+        if (ImGui::Button(tr("Cancel"))) ImGui::CloseCurrentPopup();
         ImGui::EndPopup();
     }
     ImGui::Spacing();
@@ -788,7 +801,7 @@ bool Achievements::hardcore() const {
 
 bool Achievements::can_load_state(std::string* why) const {
     if (!hardcore()) return true;
-    if (why) *why = "Loading save states is off in RetroAchievements hardcore mode.";
+    if (why) *why = tr("Loading save states is off in RetroAchievements hardcore mode.");
     return false;
 }
 

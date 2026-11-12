@@ -12,6 +12,7 @@
 
 #include "update/http.h"
 #include "update/sha256.h"
+#include "app/i18n.h"
 #include "update/update_core.h"
 
 #if defined(__APPLE__)
@@ -28,6 +29,8 @@
 
 namespace supersaga::update {
 namespace fs = std::filesystem;
+using i18n::tr;
+using i18n::trf;
 
 namespace {
 
@@ -92,13 +95,13 @@ Plan make_plan() {
     fs::path exe = running_executable();
     fs::path bundle = exe.parent_path().parent_path().parent_path();  // SuperSaga.app/Contents/MacOS/SuperSaga
     if (exe.empty() || bundle.extension() != ".app" || exe.parent_path().filename() != "MacOS") {
-        p.reason = "This copy of SuperSaga isn't an app bundle, so it can't update itself.";
+        p.reason = tr("This copy of SuperSaga isn't an app bundle, so it can't update itself.");
         return p;
     }
     std::string b = bundle.string();
     if (b.find("/AppTranslocation/") != std::string::npos) {
-        p.reason = "macOS is running SuperSaga from a temporary location. Move SuperSaga to your Applications "
-                   "folder, open it from there, and it can update itself.";
+        p.reason = tr("macOS is running SuperSaga from a temporary location. Move SuperSaga to your Applications "
+                      "folder, open it from there, and it can update itself.");
         return p;
     }
     p.target = bundle;
@@ -106,14 +109,14 @@ Plan make_plan() {
     p.stage = p.dir / ".SuperSaga-update.app";
     if (!folder_writable(p.dir)) {
         p.reason = b.rfind("/Volumes/", 0) == 0
-                       ? "SuperSaga is running from the disk image. Drag it to Applications to get automatic updates."
-                       : "SuperSaga can't write to " + p.dir.string() + ", so it can't update itself there.";
+                       ? std::string(tr("SuperSaga is running from the disk image. Drag it to Applications to get automatic updates."))
+                       : trf("SuperSaga can't write to {0}, so it can't update itself there.", p.dir.string());
         return p;
     }
 #elif defined(_WIN32)
     fs::path exe = running_executable();
     if (exe.empty()) {
-        p.reason = "Couldn't find the SuperSaga program on disk.";
+        p.reason = tr("Couldn't find the SuperSaga program on disk.");
         return p;
     }
     p.target = exe;
@@ -121,24 +124,24 @@ Plan make_plan() {
     p.stage = exe;
     p.stage += ".new";  // the new SuperSaga.exe is downloaded next to the running one (same disk)
     if (!folder_writable(p.dir)) {
-        p.reason = "SuperSaga can't write to its folder (" + u8(p.dir) + "), so it can't update itself there.";
+        p.reason = trf("SuperSaga can't write to its folder ({0}), so it can't update itself there.", u8(p.dir));
         return p;
     }
 #else
     if (platform != Platform::LinuxX64) {
-        p.reason = "There are no SuperSaga downloads for this kind of computer yet.";
+        p.reason = tr("There are no SuperSaga downloads for this kind of computer yet.");
         return p;
     }
     std::string appimage = env("APPIMAGE");
     if (appimage.empty()) {
-        p.reason = "Only the AppImage version of SuperSaga updates itself. Update this copy the way you installed it.";
+        p.reason = tr("Only the AppImage version of SuperSaga updates itself. Update this copy the way you installed it.");
         return p;
     }
     p.target = fs::path(appimage);
     p.dir = p.target.parent_path();
     p.stage = p.dir / ".SuperSaga-update.AppImage";
     if (!folder_writable(p.dir)) {
-        p.reason = "SuperSaga can't write to " + p.dir.string() + ", so it can't update itself there.";
+        p.reason = trf("SuperSaga can't write to {0}, so it can't update itself there.", p.dir.string());
         return p;
     }
 #endif
@@ -279,27 +282,27 @@ void Updater::check(bool manual) {
                 s->update([](Status& st) {
                     st.state = State::UpToDate;
                     st.latest.clear();
-                    st.message = "No releases have been published yet.";
+                    st.message = tr("No releases have been published yet.");
                 });
                 return;
             }
             if (http_status == 403 || http_status == 429)
-                err = "Couldn't check for updates right now (GitHub is limiting requests). "
-                      "SuperSaga will try again the next time it opens.";
+                err = tr("Couldn't check for updates right now (GitHub is limiting requests). "
+                         "SuperSaga will try again the next time it opens.");
             else if (http_status >= 500)
-                err = "Couldn't check for updates right now (GitHub had a problem). Try again later.";
-            s->fail(err);
+                err = tr("Couldn't check for updates right now (GitHub had a problem). Try again later.");
+            s->fail(tr(err.c_str()));
             return;
         }
         auto rel = parse_release_json(body, &err);
         if (!rel) {
-            s->fail(err);
+            s->fail(tr(err.c_str()));
             return;
         }
         auto latest = parse_version(rel->tag);
         auto current = parse_version(s->status.current);
         if (!latest || !current) {
-            s->fail("Couldn't understand the version number \"" + rel->tag + "\".");
+            s->fail(trf("Couldn't understand the version number \"{0}\".", rel->tag));
             return;
         }
         bool newer = !rel->draft && !rel->prerelease && compare_versions(*latest, *current) > 0;
@@ -326,9 +329,9 @@ void Updater::check(bool manual) {
             st.progress = -1;
             st.message.clear();
             st.state = newer ? State::Available : State::UpToDate;
-            if (newer && !asset) st.message = "This release has no download for your computer.";
-            else if (newer && !sums) st.message = "This release has no checksum file, so it can't be installed automatically.";
-            else if (newer && !bad_url.empty()) st.message = "This release's download is hosted somewhere unexpected, so it won't be installed automatically.";
+            if (newer && !asset) st.message = tr("This release has no download for your computer.");
+            else if (newer && !sums) st.message = tr("This release has no checksum file, so it can't be installed automatically.");
+            else if (newer && !bad_url.empty()) st.message = tr("This release's download is hosted somewhere unexpected, so it won't be installed automatically.");
         });
     });
 }
@@ -360,12 +363,12 @@ void Updater::download() {
         });
         std::string err, sums;
         if (!http_get(sums_url, &sums, s->http(), &err)) {
-            s->fail("Couldn't download the checksums: " + err);
+            s->fail(trf("Couldn't download the checksums: {0}", tr(err.c_str())));
             return;
         }
         std::string expected = checksum_for(sums, asset_name);
         if (expected.empty()) {
-            s->fail("The release's checksum file doesn't list " + asset_name + ", so it won't be installed.");
+            s->fail(trf("The release's checksum file doesn't list {0}, so it won't be installed.", asset_name));
             return;
         }
 
@@ -384,7 +387,7 @@ void Updater::download() {
             s->update([&](Status& st) { st.progress = total ? std::min(1.0, double(done) / double(total)) : -1; });
         };
         if (!http_download(asset_url, file, o, &err)) {
-            s->fail(err);
+            s->fail(tr(err.c_str()));
             return;
         }
 
@@ -396,8 +399,8 @@ void Updater::download() {
         std::string got = sha256_file_hex(file);
         if ((size && !ec && file_size != size) || got != expected || (!digest.empty() && got != digest)) {
             fs::remove(file, ec);
-            s->fail("The download didn't match the release's SHA-256 checksum, so it was thrown away. "
-                    "Nothing was changed. Try again later.");
+            s->fail(tr("The download didn't match the release's SHA-256 checksum, so it was thrown away. "
+                       "Nothing was changed. Try again later."));
             return;
         }
 
@@ -408,7 +411,7 @@ void Updater::download() {
         if (run_command({"/usr/bin/hdiutil", "attach", "-nobrowse", "-readonly", "-noautoopen", "-mountpoint",
                          mnt.string(), file.string()},
                         &out) != 0) {
-            s->fail("Couldn't open the downloaded disk image.");
+            s->fail(tr("Couldn't open the downloaded disk image."));
             return;
         }
         fs::path app;
@@ -427,12 +430,12 @@ void Updater::download() {
         run_command({"/usr/bin/hdiutil", "detach", mnt.string(), "-force"}, &out);
         fs::remove_all(work, ec);
         if (app.empty()) {
-            s->fail("The downloaded disk image doesn't contain SuperSaga.");
+            s->fail(tr("The downloaded disk image doesn't contain SuperSaga."));
             return;
         }
         if (!copied || !fs::exists(plan.stage / "Contents" / "MacOS", ec)) {
             fs::remove_all(plan.stage, ec);
-            s->fail("Couldn't copy the new version next to the current one.");
+            s->fail(tr("Couldn't copy the new version next to the current one."));
             return;
         }
 #elif defined(_WIN32)
@@ -444,7 +447,7 @@ void Updater::download() {
             if (!f || head[0] != 'M' || head[1] != 'Z') {
                 f.close();
                 fs::remove(file, ec);
-                s->fail("The download isn't a Windows program.");
+                s->fail(tr("The download isn't a Windows program."));
                 return;
             }
         }
@@ -458,13 +461,13 @@ void Updater::download() {
             if (!f || head[0] != 0x7f || head[1] != 'E' || head[2] != 'L' || head[3] != 'F' || head[8] != 'A' ||
                 head[9] != 'I' || head[10] != 2) {
                 fs::remove(file, ec);
-                s->fail("The download isn't an AppImage.");
+                s->fail(tr("The download isn't an AppImage."));
                 return;
             }
         }
         if (chmod(file.c_str(), 0755) != 0) {
             fs::remove(file, ec);
-            s->fail("Couldn't make the new AppImage executable.");
+            s->fail(tr("Couldn't make the new AppImage executable."));
             return;
         }
         fs::remove_all(work, ec);
@@ -485,21 +488,21 @@ bool Updater::install(std::string* error) {
     Plan plan;
     {
         std::lock_guard<std::mutex> lock(s_->mutex);
-        if (s_->status.state != State::Ready) return fail("The update isn't ready yet.");
+        if (s_->status.state != State::Ready) return fail(tr("The update isn't ready yet."));
         plan = s_->plan;
     }
-    if (busy()) return fail("The update isn't ready yet.");
+    if (busy()) return fail(tr("The update isn't ready yet."));
     std::error_code ec;
 #if defined(__APPLE__)
     fs::path old = plan.dir / ".SuperSaga-old.app";
     fs::remove_all(old, ec);
     fs::rename(plan.target, old, ec);
-    if (ec) return fail("Couldn't move the current version aside: " + ec.message());
+    if (ec) return fail(trf("Couldn't move the current version aside: {0}", ec.message()));
     fs::rename(plan.stage, plan.target, ec);
     if (ec) {
         std::error_code ec2;
         fs::rename(old, plan.target, ec2);
-        return fail("Couldn't put the new version in place: " + ec.message());
+        return fail(trf("Couldn't put the new version in place: {0}", ec.message()));
     }
 #elif defined(_WIN32)
     // Windows lets a running program be renamed: SuperSaga.exe becomes SuperSaga.exe.old (deleted on the
@@ -508,16 +511,16 @@ bool Updater::install(std::string* error) {
     old += ".old";
     fs::remove(old, ec);
     fs::rename(plan.target, old, ec);
-    if (ec) return fail("Couldn't move the current version aside: " + ec.message());
+    if (ec) return fail(trf("Couldn't move the current version aside: {0}", ec.message()));
     fs::rename(plan.stage, plan.target, ec);
     if (ec) {
         std::error_code e;
         fs::rename(old, plan.target, e);
-        return fail("Couldn't put the new version in place: " + ec.message());
+        return fail(trf("Couldn't put the new version in place: {0}", ec.message()));
     }
 #else
     fs::rename(plan.stage, plan.target, ec);
-    if (ec) return fail("Couldn't replace the AppImage: " + ec.message());
+    if (ec) return fail(trf("Couldn't replace the AppImage: {0}", ec.message()));
 #endif
     installed_ = true;
     return true;

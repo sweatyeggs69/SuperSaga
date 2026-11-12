@@ -1,5 +1,7 @@
 #include "update/http.h"
 
+#include "app/i18n.h"  // N_() marks the messages the settings page translates
+
 #include <SDL3/SDL.h>
 
 #include <cstdlib>
@@ -27,7 +29,7 @@ bool cancelled(const HttpOptions& o) { return o.cancel && o.cancel->load(); }
 bool url_allowed(const std::string& url, const HttpOptions& o, std::string* error) {
     if (url.rfind("https://", 0) == 0) return true;
     if (o.allow_plain_http && url.rfind("http://", 0) == 0) return true;
-    if (error) *error = "Refusing to download from a non-HTTPS address.";
+    if (error) *error = N_("Refusing to download from a non-HTTPS address.");
     return false;
 }
 
@@ -51,9 +53,9 @@ std::string winhttp_error(const char* what) {
     switch (e) {
         case ERROR_WINHTTP_NAME_NOT_RESOLVED:
         case ERROR_WINHTTP_CANNOT_CONNECT:
-            return "Couldn't reach the update server. Check your internet connection.";
-        case ERROR_WINHTTP_TIMEOUT: return "The update server took too long to answer.";
-        case ERROR_WINHTTP_SECURE_FAILURE: return "The secure connection to the update server failed.";
+            return N_("Couldn't reach the update server. Check your internet connection.");
+        case ERROR_WINHTTP_TIMEOUT: return N_("The update server took too long to answer.");
+        case ERROR_WINHTTP_SECURE_FAILURE: return N_("The secure connection to the update server failed.");
         default: break;
     }
     std::ostringstream s;
@@ -78,7 +80,7 @@ bool http_download(const std::string& url, const fs::path& file, const HttpOptio
     uc.dwUrlPathLength = DWORD(-1);
     uc.dwExtraInfoLength = DWORD(-1);
     if (!WinHttpCrackUrl(wurl.c_str(), 0, 0, &uc)) {
-        if (error) *error = "Bad download address.";
+        if (error) *error = N_("Bad download address.");
         return false;
     }
     std::wstring host(uc.lpszHostName, uc.dwHostNameLength);
@@ -133,14 +135,14 @@ bool http_download(const std::string& url, const fs::path& file, const HttpOptio
             total = std::wcstoull(buf, nullptr, 10);
     }
     std::ofstream out(file, std::ios::binary | std::ios::trunc);
-    if (!out) { if (error) *error = "Couldn't write the download to disk."; return false; }
+    if (!out) { if (error) *error = N_("Couldn't write the download to disk."); return false; }
     std::vector<char> buf(1 << 16);
     std::uint64_t done = 0;
     for (;;) {
         if (cancelled(opt)) {
             out.close();
             fs::remove(file, ec);
-            if (error) *error = "Cancelled.";
+            if (error) *error = N_("Cancelled.");
             return false;
         }
         DWORD got = 0;
@@ -156,7 +158,7 @@ bool http_download(const std::string& url, const fs::path& file, const HttpOptio
         if (opt.progress) opt.progress(done, total);
     }
     out.close();
-    if (!out) { if (error) *error = "Couldn't write the download to disk."; return false; }
+    if (!out) { if (error) *error = N_("Couldn't write the download to disk."); return false; }
     return true;
 #else
 #if defined(__APPLE__)
@@ -189,7 +191,7 @@ bool http_download(const std::string& url, const fs::path& file, const HttpOptio
     SDL_Process* proc = SDL_CreateProcessWithProperties(props);
     SDL_DestroyProperties(props);
     if (!proc) {
-        if (error) *error = "Downloading updates needs the curl command, which wasn't found.";
+        if (error) *error = N_("Downloading updates needs the curl command, which wasn't found.");
         return false;
     }
     int code = -1;
@@ -199,7 +201,7 @@ bool http_download(const std::string& url, const fs::path& file, const HttpOptio
             SDL_WaitProcess(proc, true, &code);
             SDL_DestroyProcess(proc);
             fs::remove(file, ec);
-            if (error) *error = "Cancelled.";
+            if (error) *error = N_("Cancelled.");
             return false;
         }
         if (opt.progress) {
@@ -234,10 +236,10 @@ bool http_download(const std::string& url, const fs::path& file, const HttpOptio
     }
     if (error) {
         switch (code) {
-            case 6: case 7: *error = "Couldn't reach the update server. Check your internet connection."; break;
-            case 28: *error = "The update server took too long to answer."; break;
-            case 35: case 51: case 58: case 60: *error = "The secure connection to the update server failed."; break;
-            case 23: *error = "Couldn't write the download to disk."; break;
+            case 6: case 7: *error = N_("Couldn't reach the update server. Check your internet connection."); break;
+            case 28: *error = N_("The update server took too long to answer."); break;
+            case 35: case 51: case 58: case 60: *error = N_("The secure connection to the update server failed."); break;
+            case 23: *error = N_("Couldn't write the download to disk."); break;
             default: *error = "Download failed (curl " + std::to_string(code) + (msg.empty() ? ")." : "): " + msg); break;
         }
     }

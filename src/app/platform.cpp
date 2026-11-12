@@ -8,6 +8,7 @@
 
 #include "app/config.h"
 #include "app/fsutil.h"
+#include "app/i18n.h"
 #include "game.h"
 
 #if defined(__APPLE__)
@@ -32,6 +33,8 @@ extern const unsigned supersaga_image_icon_size;
 
 namespace supersaga {
 namespace fs = std::filesystem;
+using i18n::tr;
+using i18n::trf;
 
 namespace {
 // Shortcuts carry the app's own name and icon. Early test builds named them after the game.
@@ -81,7 +84,7 @@ bool write_lnk(const fs::path& lnk, const fs::path& exe, std::string* error) {
     IShellLinkW* link = nullptr;
     if (FAILED(CoCreateInstance(CLSID_ShellLink, nullptr, CLSCTX_INPROC_SERVER, IID_IShellLinkW,
                                 reinterpret_cast<void**>(&link)))) {
-        *error = "Windows could not create a shortcut object.";
+        *error = tr("Windows could not create a shortcut object.");
         return false;
     }
     link->SetPath(exe.wstring().c_str());
@@ -98,7 +101,7 @@ bool write_lnk(const fs::path& lnk, const fs::path& exe, std::string* error) {
         file->Release();
     }
     link->Release();
-    if (!ok) *error = "Could not save " + path_utf8(lnk);
+    if (!ok) *error = trf("Could not save {0}", path_utf8(lnk));
     return ok;
 }
 #endif
@@ -132,21 +135,19 @@ VerifiedRom verify_rom(const fs::path& path) {
     v.path = fs::absolute(path, ec);
     if (ec) v.path = path;
     if (!fs::exists(v.path, ec)) {
-        v.error = "The ROM file could not be found:\n" + v.path.string();
+        v.error = trf("The ROM file could not be found:\n{0}", v.path.string());
         return v;
     }
     auto loaded = load_rom(v.path);
     if (!loaded.ok) {
-        v.error = "That file is not a Game Boy Advance ROM.";
+        v.error = tr("That file is not a Game Boy Advance ROM.");
         return v;
     }
     if (!loaded.rom.hash_matches) {
         const auto& h = loaded.rom.header;
-        v.error = "That ROM is not the supported dump.\n"
-                  "Found: " + h.title + " [" + h.game_code + "] rev " + std::to_string(h.version) + "\n"
-                  "Needed: " + std::string(game::kTitleWithRegion) + " [" + game::kGameCode + "] rev " +
-                  std::to_string(game::kRevision) + "\n"
-                  "SHA-1 " + loaded.rom.sha1;
+        v.error = trf("That ROM is not the supported dump.\nFound: {0} [{1}] rev {2}\nNeeded: {3} [{4}] rev {5}\nSHA-1 {6}",
+                      h.title, h.game_code, int(h.version), game::kTitleWithRegion, game::kGameCode,
+                      int(game::kRevision), loaded.rom.sha1);
         return v;
     }
     v.rom = std::move(loaded.rom);
@@ -304,16 +305,16 @@ ShortcutResult remove_shortcut(ShortcutPlace place) {
         if (!old.empty() && state_at(old) == ShortcutState::Ours) { p = old; st = ShortcutState::Ours; }
     }
     switch (st) {
-        case ShortcutState::None: r.ok = true; r.message = "There is no shortcut to remove."; return r;
-        case ShortcutState::Foreign: r.message = p.string() + " was not created by SuperSaga, so it was left alone."; return r;
+        case ShortcutState::None: r.ok = true; r.message = tr("There is no shortcut to remove."); return r;
+        case ShortcutState::Foreign: r.message = trf("{0} was not created by SuperSaga, so it was left alone.", p.string()); return r;
         case ShortcutState::Ours: break;
     }
     fs::path where;
-    if (!move_to_trash(p, &where)) { r.message = "Could not move " + p.string() + " to the Trash."; return r; }
+    if (!move_to_trash(p, &where)) { r.message = trf("Could not move {0} to the Trash.", p.string()); return r; }
     retire_legacy_shortcut(place);
     r.ok = true;
     r.path = where;
-    r.message = "Shortcut moved to the Trash.";
+    r.message = tr("Shortcut moved to the Trash.");
     return r;
 }
 
@@ -321,12 +322,12 @@ ShortcutResult create_shortcut(ShortcutPlace place, bool replace_foreign) {
     ShortcutResult r;
     fs::path exe = executable_path();
     if (exe.empty()) {
-        r.message = "Could not find the SuperSaga program on disk.";
+        r.message = tr("Could not find the SuperSaga program on disk.");
         return r;
     }
     fs::path target = shortcut_path(place);
     if (target.empty()) {
-        r.message = "Creating shortcuts is not available on this system yet.";
+        r.message = tr("Creating shortcuts is not available on this system yet.");
         return r;
     }
     ShortcutState state = state_at(target);
@@ -335,7 +336,7 @@ ShortcutResult create_shortcut(ShortcutPlace place, bool replace_foreign) {
     for (fs::path p = exe.parent_path(); p.has_relative_path(); p = p.parent_path()) {
         std::error_code ec;
         if (p.extension() == ".app" && exists_at(target) && fs::equivalent(p, target, ec)) {
-            r.message = "SuperSaga itself is already at " + target.string() + ".";
+            r.message = trf("SuperSaga itself is already at {0}.", target.string());
             return r;
         }
     }
@@ -344,12 +345,12 @@ ShortcutResult create_shortcut(ShortcutPlace place, bool replace_foreign) {
         if (!replace_foreign) {
             r.needs_confirm = true;
             r.path = target;
-            r.message = target.string() + " already exists and was not created by SuperSaga. Replace it? "
-                        "(It will be moved to the Trash.)";
+            r.message = trf("{0} already exists and was not created by SuperSaga. Replace it? (It will be moved to the Trash.)",
+                            target.string());
             return r;
         }
         if (!move_to_trash(target)) {
-            r.message = "Could not move the existing " + target.string() + " to the Trash.";
+            r.message = trf("Could not move the existing {0} to the Trash.", target.string());
             return r;
         }
     }
@@ -361,7 +362,7 @@ ShortcutResult create_shortcut(ShortcutPlace place, bool replace_foreign) {
     fs::create_directories(contents / "MacOS", ec);
     fs::create_directories(contents / "Resources", ec);
     if (ec) {
-        r.message = "Could not create " + target.string() + ": " + ec.message();
+        r.message = trf("Could not create {0}: {1}", target.string(), ec.message());
         return r;
     }
     std::string launch;
@@ -422,7 +423,7 @@ ShortcutResult create_shortcut(ShortcutPlace place, bool replace_foreign) {
         d << "[Desktop Entry]\nType=Application\nName=" << kShortcutName << "\nExec=\"" << launch.string()
           << "\" --play\nIcon=" << (icon.empty() ? std::string("supersaga") : icon.string()) << "\nStartupWMClass=SuperSaga\nTerminal=false\nCategories=Game;\nX-SuperSaga-Shortcut=true\n";
         if (!d) {
-            r.message = "Could not write " + target.string();
+            r.message = trf("Could not write {0}", target.string());
             return r;
         }
     }
@@ -431,7 +432,7 @@ ShortcutResult create_shortcut(ShortcutPlace place, bool replace_foreign) {
     retire_legacy_shortcut(place);
     r.ok = true;
     r.path = target;
-    r.message = std::string(updating ? "Shortcut updated:\n" : "Shortcut created:\n") + target.string();
+    r.message = updating ? trf("Shortcut updated:\n{0}", target.string()) : trf("Shortcut created:\n{0}", target.string());
     return r;
 }
 

@@ -1,0 +1,1956 @@
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: es\n"
+
+#: src/app/achievements.cpp:101
+msgid "Locked"
+msgstr "Bloqueados"
+
+#: src/app/achievements.cpp:101
+msgid "Unlocked"
+msgstr "Desbloqueados"
+
+#: src/app/achievements.cpp:101
+msgid "Recently Unlocked"
+msgstr "Desbloqueados recientemente"
+
+#: src/app/achievements.cpp:101
+msgid "Active Challenges"
+msgstr "Desafíos activos"
+
+#: src/app/achievements.cpp:101
+msgid "Almost There"
+msgstr "Casi lo tienes"
+
+#: src/app/achievements.cpp:102
+msgid "Unsupported"
+msgstr "No compatibles"
+
+#: src/app/achievements.cpp:102
+msgid "Unofficial"
+msgstr "No oficiales"
+
+#: src/app/achievements.cpp:102
+msgid "Unlocks Not Synced to Server"
+msgstr "Desbloqueos sin sincronizar"
+
+#: src/app/achievements.cpp:228
+msgid "Enter your RetroAchievements username and password."
+msgstr "Introduce tu usuario y contraseña de RetroAchievements."
+
+#: src/app/achievements.cpp:257
+msgid "Signed in, but the login could not be saved; you will be asked again next time."
+msgstr "Sesión iniciada, pero no se pudo guardar; se te volverá a pedir la próxima vez."
+
+#: src/app/achievements.cpp:261
+msgid "Signed in to RetroAchievements"
+msgstr "Sesión iniciada en RetroAchievements"
+
+#: src/app/achievements.cpp:261
+msgid "{0}, {1} points"
+msgstr "{0}, {1} puntos"
+
+#: src/app/achievements.cpp:271
+msgid "Sign-in failed: {0}"
+msgstr "Error al iniciar sesión: {0}"
+
+#: src/app/achievements.cpp:273
+msgid "Could not sign in: {0}"
+msgstr "No se pudo iniciar sesión: {0}"
+
+#: src/app/achievements.cpp:283
+msgid "Signed out."
+msgstr "Sesión cerrada."
+
+#: src/app/achievements.cpp:291
+msgid "Loading achievements..."
+msgstr "Cargando logros..."
+
+#: src/app/achievements.cpp:305
+msgid "RetroAchievements does not know this ROM (MD5 {0})."
+msgstr "RetroAchievements no reconoce esta ROM (MD5 {0})."
+
+#: src/app/achievements.cpp:309
+msgid "Could not load achievements: {0}"
+msgstr "No se pudieron cargar los logros: {0}"
+
+#: src/app/achievements.cpp:318
+msgid "This game has no achievements yet."
+msgstr "Este juego aún no tiene logros."
+
+#: src/app/achievements.cpp:320
+msgid "{0} of {1} achievements unlocked (hardcore)"
+msgstr "{0} de {1} logros desbloqueados (hardcore)"
+
+#: src/app/achievements.cpp:321
+msgid "{0} of {1} achievements unlocked"
+msgstr "{0} de {1} logros desbloqueados"
+
+#: src/app/achievements.cpp:329
+msgid "Hardcore mode"
+msgstr "Modo hardcore"
+
+#: src/app/achievements.cpp:329
+msgid "Restarting the game so achievements can be earned."
+msgstr "Reiniciando el juego para poder conseguir logros."
+
+#: src/app/achievements.cpp:348
+msgid "1 point."
+msgstr "1 punto."
+
+#: src/app/achievements.cpp:348
+msgid "{0} points."
+msgstr "{0} puntos."
+
+#: src/app/achievements.cpp:355
+msgid "Mastered {0}"
+msgstr "{0} dominado"
+
+#: src/app/achievements.cpp:355
+msgid "Completed {0}"
+msgstr "{0} completado"
+
+#: src/app/achievements.cpp:355
+msgid "the game"
+msgstr "el juego"
+
+#: src/app/achievements.cpp:356
+msgid "Every achievement unlocked. Congratulations!"
+msgstr "Todos los logros desbloqueados. ¡Enhorabuena!"
+
+#: src/app/achievements.cpp:362
+msgid "a set"
+msgstr "un conjunto"
+
+#: src/app/achievements.cpp:363
+msgid "Every achievement in this set unlocked."
+msgstr "Todos los logros de este conjunto desbloqueados."
+
+#: src/app/achievements.cpp:373
+msgid "Progress: {0}"
+msgstr "Progreso: {0}"
+
+#: src/app/achievements.cpp:379
+msgid "Leaderboard attempt started"
+msgstr "Intento de clasificación iniciado"
+
+#: src/app/achievements.cpp:382
+msgid "Leaderboard attempt failed"
+msgstr "Intento de clasificación fallido"
+
+#: src/app/achievements.cpp:386
+msgid "Submitted {0}"
+msgstr "{0} enviado"
+
+#: src/app/achievements.cpp:391
+msgid "Rank {0} of {1}"
+msgstr "Puesto {0} de {1}"
+
+#: src/app/achievements.cpp:400
+msgid "RetroAchievements error"
+msgstr "Error de RetroAchievements"
+
+#: src/app/achievements.cpp:401
+msgid "The server refused a request."
+msgstr "El servidor rechazó una solicitud."
+
+#: src/app/achievements.cpp:405
+msgid "RetroAchievements is offline"
+msgstr "RetroAchievements está desconectado"
+
+#: src/app/achievements.cpp:405
+msgid "Unlocks are kept and sent when the connection is back."
+msgstr "Los desbloqueos se guardan y se envían cuando vuelva la conexión."
+
+#: src/app/achievements.cpp:409
+msgid "RetroAchievements is back online"
+msgstr "RetroAchievements vuelve a estar conectado"
+
+#: src/app/achievements.cpp:409
+msgid "Pending unlocks were sent."
+msgstr "Se enviaron los desbloqueos pendientes."
+
+#: src/app/achievements.cpp:505
+msgid "Sign in with your RetroAchievements account to earn achievements while you play."
+msgstr "Inicia sesión con tu cuenta de RetroAchievements para conseguir logros mientras juegas."
+
+#: src/app/achievements.cpp:510
+msgid "Username"
+msgstr "Usuario"
+
+#: src/app/achievements.cpp:512
+msgid "Password"
+msgstr "Contraseña"
+
+#: src/app/achievements.cpp:514
+msgid "Signing in..."
+msgstr "Iniciando sesión..."
+
+#: src/app/achievements.cpp:514
+msgid "Sign in"
+msgstr "Iniciar sesión"
+
+#: src/app/achievements.cpp:518
+msgid "Create an account"
+msgstr "Crear una cuenta"
+
+#: src/app/achievements.cpp:521
+msgid "Your password goes only to retroachievements.org and is never saved. SuperSaga keeps\njust the sign-in token, in {0}."
+msgstr "Tu contraseña solo se envía a retroachievements.org y nunca se guarda.\nSuperSaga solo conserva el token de sesión, en {0}."
+
+#: src/app/achievements.cpp:531
+msgid "Start the game to see its achievements."
+msgstr "Inicia el juego para ver sus logros."
+
+#: src/app/achievements.cpp:536
+msgid "Try again"
+msgstr "Reintentar"
+
+#: src/app/achievements.cpp:545
+msgid "{0} has no achievements yet."
+msgstr "{0} aún no tiene logros."
+
+#: src/app/achievements.cpp:545
+msgid "This game"
+msgstr "Este juego"
+
+#: src/app/achievements.cpp:548
+msgid "{0}: {1} of {2} unlocked, {3} of {4} points"
+msgstr "{0}: {1} de {2} desbloqueados, {3} de {4} puntos"
+
+#: src/app/achievements.cpp:548
+msgid "Game"
+msgstr "Juego"
+
+#: src/app/achievements.cpp:583
+msgid "1 pt"
+msgstr "1 pt"
+
+#: src/app/achievements.cpp:583
+msgid "{0} pts"
+msgstr "{0} pts"
+
+#: src/app/achievements.cpp:607
+msgid "No network library was found, so RetroAchievements cannot connect."
+msgstr "No se encontró ninguna biblioteca de red, así que RetroAchievements no puede conectarse."
+
+#: src/app/achievements.cpp:611
+msgid "Achievements on"
+msgstr "Logros activados"
+
+#: src/app/achievements.cpp:611
+msgid "Earn achievements while playing"
+msgstr "Conseguir logros mientras juegas"
+
+#: src/app/achievements.cpp:629
+msgid "Saved account: {0}"
+msgstr "Cuenta guardada: {0}"
+
+#: src/app/achievements.cpp:633
+msgid "Use another account"
+msgstr "Usar otra cuenta"
+
+#: src/app/achievements.cpp:663
+msgid "Options"
+msgstr "Opciones"
+
+#: src/app/achievements.cpp:665
+msgid "Sign out"
+msgstr "Cerrar sesión"
+
+#: src/app/achievements.cpp:685
+msgid "Hardcore unlocks are worth more and are marked on your profile. Loading save\nstates is turned off while it is on (your battery save still works)."
+msgstr "Los desbloqueos hardcore valen más y se marcan en tu perfil. Cargar estados\nguardados se desactiva mientras está activo (tu partida guardada sigue funcionando)."
+
+#: src/app/achievements.cpp:688
+msgid "RetroAchievements does not accept hardcore unlocks from SuperSaga yet."
+msgstr "RetroAchievements aún no acepta desbloqueos hardcore desde SuperSaga."
+
+#: src/app/achievements.cpp:692
+msgid "Show a notification when an achievement unlocks"
+msgstr "Mostrar un aviso al desbloquear un logro"
+
+#: src/app/achievements.cpp:694
+msgid "Show progress updates"
+msgstr "Mostrar el progreso"
+
+#: src/app/achievements.cpp:696
+msgid "Show leaderboard notices"
+msgstr "Mostrar avisos de clasificación"
+
+#: src/app/achievements.cpp:700
+msgid "Turn on hardcore?"
+msgstr "¿Activar el modo hardcore?"
+
+#: src/app/achievements.cpp:704
+msgid "The game restarts from the beginning. Your battery save is kept."
+msgstr "El juego se reinicia desde el principio. Tu partida guardada se conserva."
+
+#: src/app/achievements.cpp:705
+msgid "Restart in hardcore"
+msgstr "Reiniciar en hardcore"
+
+#: src/app/achievements.cpp:711
+msgid "Cancel"
+msgstr "Cancelar"
+
+#: src/app/achievements.cpp:804
+msgid "Loading save states is off in RetroAchievements hardcore mode."
+msgstr "Cargar estados está desactivado en el modo hardcore de RetroAchievements."
+
+#: src/app/app.cpp:262
+msgid "States"
+msgstr "Estados"
+
+#: src/app/app.cpp:263
+msgid "Cheats"
+msgstr "Trucos"
+
+#: src/app/app.cpp:271
+msgid "Achievements"
+msgstr "Logros"
+
+#: src/app/app.cpp:285
+msgid "Save state slot: {0}"
+msgstr "Ranura de estado guardado: {0}"
+
+#: src/app/app.cpp:285
+msgid "Save state slot: {0} (empty)"
+msgstr "Ranura de estado guardado: {0} (vacía)"
+
+#: src/app/app.cpp:289
+msgid "Updates"
+msgstr "Actualizaciones"
+
+#: src/app/app.cpp:290
+msgid "About"
+msgstr "Acerca de"
+
+#: src/app/app.cpp:294
+msgid "An unofficial project. Not affiliated with Nintendo."
+msgstr "Un proyecto no oficial. Sin relación con Nintendo."
+
+#: src/app/app.cpp:295
+msgid "https://github.com/sweatyeggs69/SuperSaga"
+msgstr "https://github.com/sweatyeggs69/SuperSaga"
+
+#: src/app/app.cpp:307
+msgid "SuperSaga license (MIT)"
+msgstr "Licencia de SuperSaga (MIT)"
+
+#: src/app/app.cpp:308
+msgid "Third-party notices"
+msgstr "Avisos de terceros"
+
+#: src/app/app.cpp:309
+msgid "DM Sans font license (SIL OFL 1.1)"
+msgstr "Licencia de la fuente DM Sans (SIL OFL 1.1)"
+
+#: src/app/app.cpp:346
+msgid "The saved ROM changed since it was chosen. Please choose it again."
+msgstr "La ROM guardada cambió desde que se eligió. Vuelve a elegirla."
+
+#: src/app/app.cpp:368
+msgid "Game Boy Advance ROM"
+msgstr "ROM de Game Boy Advance"
+
+#: src/app/app.cpp:369
+msgid "All files"
+msgstr "Todos los archivos"
+
+#: src/app/app.cpp:401
+msgid "The BIOS file is not the retail GBA BIOS; using the built-in BIOS."
+msgstr "El archivo no es la BIOS original de GBA; se usa la BIOS integrada."
+
+#: src/app/app.cpp:439
+msgid "F1 or Esc: settings menu"
+msgstr "F1 o Esc: menú de ajustes"
+
+#: src/app/app.cpp:642
+msgid "{0}, native on your computer"
+msgstr "{0}, nativo en tu ordenador"
+
+#: src/app/app.cpp:645
+msgid "To play, choose your own copy of the game: a ROM file dumped from your cartridge of {0}."
+msgstr "Para jugar, elige tu propia copia del juego: un archivo ROM volcado de tu cartucho de {0}."
+
+#: src/app/app.cpp:648
+msgid "SuperSaga only remembers where the file is. It never copies, uploads or changes it."
+msgstr "SuperSaga solo recuerda dónde está el archivo. Nunca lo copia, lo sube ni lo modifica."
+
+#: src/app/app.cpp:654
+msgid "Choose ROM..."
+msgstr "Elegir ROM..."
+
+#: src/app/app.cpp:663
+msgid "Quit"
+msgstr "Salir"
+
+#: src/app/app.cpp:673
+msgid "just now"
+msgstr "ahora mismo"
+
+#: src/app/app.cpp:674
+msgid "1 minute ago"
+msgstr "hace 1 minuto"
+
+#: src/app/app.cpp:674
+msgid "{0} minutes ago"
+msgstr "hace {0} minutos"
+
+#: src/app/app.cpp:675
+msgid "1 hour ago"
+msgstr "hace 1 hora"
+
+#: src/app/app.cpp:675
+msgid "{0} hours ago"
+msgstr "hace {0} horas"
+
+#: src/app/app.cpp:676
+msgid "1 day ago"
+msgstr "hace 1 día"
+
+#: src/app/app.cpp:676
+msgid "{0} days ago"
+msgstr "hace {0} días"
+
+#: src/app/app.cpp:701
+msgid "Resume"
+msgstr "Reanudar"
+
+#: src/app/app.cpp:703
+msgid "Restart"
+msgstr "Reiniciar"
+
+#: src/app/app.cpp:709
+msgid "Continue"
+msgstr "Continuar"
+
+#: src/app/app.cpp:712
+msgid "Play from the title screen"
+msgstr "Jugar desde la pantalla de título"
+
+#: src/app/app.cpp:715
+msgid "Play"
+msgstr "Jugar"
+
+#: src/app/app.cpp:719
+msgid "Settings"
+msgstr "Ajustes"
+
+#: src/app/app.cpp:749
+msgid "ROM verified"
+msgstr "ROM verificada"
+
+#: src/app/app.cpp:751
+msgid "Saved {0}"
+msgstr "Guardado {0}"
+
+#: src/app/app.cpp:825
+msgid "unbound"
+msgstr "sin asignar"
+
+#: src/app/app.cpp:828
+msgid "{0} save  {1} new  {2} load  {3}/{4} slot"
+msgstr "{0} guardar  {1} nuevo  {2} cargar  {3}/{4} ranura"
+
+#: src/app/app.cpp:831
+msgid "save {0}; save to new slot {1}; load {2}; previous slot {3}; next slot {4}"
+msgstr "guardar {0}; guardar en ranura nueva {1}; cargar {2}; ranura anterior {3}; ranura siguiente {4}"
+
+#: src/app/app.cpp:862
+msgid "Slot {0} overwritten"
+msgstr "Ranura {0} sobrescrita"
+
+#: src/app/app.cpp:862
+msgid "State saved to slot {0}"
+msgstr "Estado guardado en la ranura {0}"
+
+#: src/app/app.cpp:864
+msgid "Could not save the state"
+msgstr "No se pudo guardar el estado"
+
+#: src/app/app.cpp:865
+msgid "Overwrote {0}."
+msgstr "{0} sobrescrita."
+
+#: src/app/app.cpp:865
+msgid "Saved to {0}."
+msgstr "Guardado en {0}."
+
+#: src/app/app.cpp:878
+msgid "All {0} slots are full. Delete one in the States tab, or save over the current slot."
+msgstr "Las {0} ranuras están llenas. Borra una en la pestaña Estados o guarda sobre la ranura actual."
+
+#: src/app/app.cpp:880
+msgid "No empty slot"
+msgstr "No hay ranuras libres"
+
+#: src/app/app.cpp:907
+msgid "{0} is empty."
+msgstr "{0} está vacía."
+
+#: src/app/app.cpp:918
+msgid "Could not load the state"
+msgstr "No se pudo cargar el estado"
+
+#: src/app/app.cpp:926
+msgid "State loaded from slot {0}"
+msgstr "Estado cargado de la ranura {0}"
+
+#: src/app/app.cpp:927
+msgid "Loaded {0}."
+msgstr "{0} cargada."
+
+#: src/app/app.cpp:953
+msgid "No ROM is chosen yet."
+msgstr "Aún no se ha elegido ninguna ROM."
+
+#: src/app/app.cpp:968
+msgid "Couldn't auto-load the save state"
+msgstr "No se pudo cargar el estado automáticamente"
+
+#: src/app/app.cpp:968
+msgid "Couldn't start the game"
+msgstr "No se pudo iniciar el juego"
+
+#: src/app/app.cpp:985
+msgid "Choose your ROM first (Game tab)."
+msgstr "Primero elige tu ROM (pestaña Juego)."
+
+#: src/app/app.cpp:988
+msgid "Shortcuts in game: {0}. Current: {1}. Change them in Controls."
+msgstr "Atajos en el juego: {0}. Actual: {1}. Cámbialos en Controles."
+
+#: src/app/app.cpp:991
+msgid "Undo last load"
+msgstr "Deshacer la última carga"
+
+#: src/app/app.cpp:996
+msgid "Went back to before the last load."
+msgstr "Se volvió a antes de la última carga."
+
+#: src/app/app.cpp:1001
+msgid "Show folder"
+msgstr "Mostrar carpeta"
+
+#: src/app/app.cpp:1004
+msgid "Save to new slot"
+msgstr "Guardar en ranura nueva"
+
+#: src/app/app.cpp:1008
+msgid "Overwrite the current slot"
+msgstr "Sobrescribir la ranura actual"
+
+#: src/app/app.cpp:1008
+msgid "Save to a new slot each time"
+msgstr "Guardar en una ranura nueva cada vez"
+
+#: src/app/app.cpp:1010
+msgid "Save state shortcut:"
+msgstr "Atajo de guardar estado:"
+
+#: src/app/app.cpp:1055
+msgid "Unusable"
+msgstr "Inutilizable"
+
+#: src/app/app.cpp:1055
+msgid "Empty"
+msgstr "Vacía"
+
+#: src/app/app.cpp:1074
+msgid "%b %d, %H:%M"
+msgstr "%d/%m, %H:%M"
+
+#: src/app/app.cpp:1075
+msgid "{0}  |  {1} played"
+msgstr "{0}  |  {1} jugado"
+
+#: src/app/app.cpp:1077
+msgid "No state saved yet"
+msgstr "Aún no hay estado guardado"
+
+#: src/app/app.cpp:1085
+msgid "Save"
+msgstr "Guardar"
+
+#: src/app/app.cpp:1089
+msgid "Load"
+msgstr "Cargar"
+
+#: src/app/app.cpp:1098
+msgid "Rename..."
+msgstr "Renombrar..."
+
+#: src/app/app.cpp:1102
+msgid "Export..."
+msgstr "Exportar..."
+
+#: src/app/app.cpp:1105
+msgid "SuperSaga save state"
+msgstr "Estado guardado de SuperSaga"
+
+#: src/app/app.cpp:1115
+msgid "Import into this slot..."
+msgstr "Importar en esta ranura..."
+
+#: src/app/app.cpp:1128
+msgid "Delete..."
+msgstr "Borrar..."
+
+#: src/app/app.cpp:1140
+msgid "Rename state"
+msgstr "Renombrar estado"
+
+#: src/app/app.cpp:1142
+msgid "Label for {0}:"
+msgstr "Nombre para {0}:"
+
+#: src/app/app.cpp:1156
+msgid "Delete state?"
+msgstr "¿Borrar el estado?"
+
+#: src/app/app.cpp:1158
+msgid "Delete {0}? It is moved to the Trash."
+msgstr "¿Borrar {0}? Se moverá a la papelera."
+
+#: src/app/app.cpp:1159
+msgid "Delete"
+msgstr "Borrar"
+
+#: src/app/app.cpp:1162
+msgid "{0} moved to the Trash."
+msgstr "{0} movida a la papelera."
+
+#: src/app/app.cpp:1183
+msgid "Could not read {0}"
+msgstr "No se pudo leer {0}"
+
+#: src/app/app.cpp:1202
+msgid "Could not write the save file {0}"
+msgstr "No se pudo escribir el archivo de guardado {0}"
+
+#: src/app/app.cpp:1212
+msgid "Imported {0}."
+msgstr "{0} importado."
+
+#: src/app/app.cpp:1213
+msgid "Imported {0}. The previous save was backed up."
+msgstr "{0} importado. Se hizo una copia de la partida anterior."
+
+#: src/app/app.cpp:1214
+msgid "The game was restarted."
+msgstr "El juego se reinició."
+
+#: src/app/app.cpp:1225
+msgid "There is no save to export yet. Play the game first."
+msgstr "Aún no hay partida que exportar. Juega primero."
+
+#: src/app/app.cpp:1232
+msgid "Could not write {0}"
+msgstr "No se pudo escribir {0}"
+
+#: src/app/app.cpp:1235
+msgid "Exported to {0} (raw {1} KiB, works in mGBA, VBA-M and RetroArch)."
+msgstr "Exportada a {0} (sin formato, {1} KiB, funciona en mGBA, VBA-M y RetroArch)."
+
+#: src/app/app.cpp:1240
+msgid "Saves"
+msgstr "Partidas guardadas"
+
+#: src/app/app.cpp:1243
+msgid "Show save folder"
+msgstr "Mostrar carpeta de partidas"
+
+#: src/app/app.cpp:1249
+msgid "Import save..."
+msgstr "Importar partida..."
+
+#: src/app/app.cpp:1252
+msgid "Game saves"
+msgstr "Partidas guardadas"
+
+#: src/app/app.cpp:1262
+msgid "Export save..."
+msgstr "Exportar partida..."
+
+#: src/app/app.cpp:1265
+msgid "Game save"
+msgstr "Partida guardada"
+
+#: src/app/app.cpp:1275
+msgid "Restore backup..."
+msgstr "Restaurar copia..."
+
+#: src/app/app.cpp:1278
+msgid "Imports .sav / .srm battery saves from mGBA, VBA-M, RetroArch and others."
+msgstr "Importa partidas .sav / .srm de mGBA, VBA-M, RetroArch y otros."
+
+#: src/app/app.cpp:1286
+msgid "Replace your save?"
+msgstr "¿Reemplazar tu partida?"
+
+#: src/app/app.cpp:1291
+msgid "Use {0} as your save?"
+msgstr "¿Usar {0} como tu partida?"
+
+#: src/app/app.cpp:1293
+msgid "Your current save is backed up first (the last 10 are kept)."
+msgstr "Primero se copia tu partida actual (se guardan las 10 últimas)."
+
+#: src/app/app.cpp:1295
+msgid "Importing restarts the game; unsaved progress is lost."
+msgstr "Importar reinicia el juego; se pierde el progreso sin guardar."
+
+#: src/app/app.cpp:1299
+msgid "Replace save"
+msgstr "Reemplazar partida"
+
+#: src/app/app.cpp:1312
+msgid "Restore a backup"
+msgstr "Restaurar una copia"
+
+#: src/app/app.cpp:1318
+msgid "No backups yet. One is made every time a save is replaced."
+msgstr "Aún no hay copias. Se hace una cada vez que se reemplaza una partida."
+
+#: src/app/app.cpp:1331
+msgid "the backup from {0}"
+msgstr "la copia del {0}"
+
+#: src/app/app.cpp:1331
+msgid "backup"
+msgstr "copia"
+
+#: src/app/app.cpp:1345
+msgid "Mario and Luigi"
+msgstr "Mario y Luigi"
+
+#: src/app/app.cpp:1350
+msgid "Infinite HP"
+msgstr "PV infinitos"
+
+#: src/app/app.cpp:1350
+msgid "Both brothers' HP stays full, so damage never drains it."
+msgstr "Los PV de ambos hermanos se mantienen al máximo, así que el daño nunca los reduce."
+
+#: src/app/app.cpp:1351
+msgid "Infinite BP"
+msgstr "PH infinitos"
+
+#: src/app/app.cpp:1351
+msgid "Bros. Points refill after every Bros. Attack."
+msgstr "Los Puntos Hermanos se recargan tras cada Ataque Hermanos."
+
+#: src/app/app.cpp:1352
+msgid "Max coins"
+msgstr "Monedas al máximo"
+
+#: src/app/app.cpp:1352
+msgid "Your coins stay at 9999."
+msgstr "Tus monedas se quedan en 9999."
+
+#: src/app/app.cpp:1364
+msgid "Cheats are off while RetroAchievements hardcore mode is on."
+msgstr "Los trucos están desactivados en el modo hardcore de RetroAchievements."
+
+#: src/app/app.cpp:1365
+msgid "HP and BP refill up to each brother's current maximum. Cheats stay on until you turn them off."
+msgstr "Los PV y PH se recargan hasta el máximo actual de cada hermano. Los trucos siguen activos hasta que los desactives."
+
+#: src/app/app.cpp:1372
+msgid "Game ROM"
+msgstr "ROM del juego"
+
+#: src/app/app.cpp:1375
+msgid "{0}, header match (fingerprint not pinned yet)"
+msgstr "{0}, cabecera coincidente (huella aún no fijada)"
+
+#: src/app/app.cpp:1377
+msgid "{0}, verified"
+msgstr "{0}, verificada"
+
+#: src/app/app.cpp:1387
+msgid "No ROM chosen"
+msgstr "Ninguna ROM elegida"
+
+#: src/app/app.cpp:1389
+msgid "Change ROM..."
+msgstr "Cambiar ROM..."
+
+#: src/app/app.cpp:1396
+msgid "Startup"
+msgstr "Inicio"
+
+#: src/app/app.cpp:1398
+msgid "Auto-load save state on launch"
+msgstr "Cargar el estado al abrir"
+
+#: src/app/app.cpp:1399
+msgid "Opening SuperSaga goes straight back to where you left off (your most recent save state)."
+msgstr "Al abrir SuperSaga vuelves directamente a donde lo dejaste (tu estado más reciente)."
+
+#: src/app/app.cpp:1400
+msgid "Hold Shift while opening SuperSaga to see this menu instead."
+msgstr "Mantén Mayús al abrir SuperSaga para ver este menú en su lugar."
+
+#: src/app/app.cpp:1404
+msgid "BIOS (optional)"
+msgstr "BIOS (opcional)"
+
+#: src/app/app.cpp:1410
+msgid "The BIOS file could not be read; using the built-in BIOS."
+msgstr "No se pudo leer el archivo de BIOS; se usa la BIOS integrada."
+
+#: src/app/app.cpp:1413
+msgid "Built-in BIOS. No file is needed."
+msgstr "BIOS integrada. No hace falta ningún archivo."
+
+#: src/app/app.cpp:1417
+msgid "Retail GBA BIOS verified: the Game Boy logo plays when the game starts, and the game runs on this BIOS."
+msgstr "BIOS original de GBA verificada: el logo de Game Boy aparece al iniciar y el juego usa esta BIOS."
+
+#: src/app/app.cpp:1422
+msgid "Use a BIOS file..."
+msgstr "Usar un archivo de BIOS..."
+
+#: src/app/app.cpp:1422
+msgid "Use the built-in BIOS"
+msgstr "Usar la BIOS integrada"
+
+#: src/app/app.cpp:1427
+msgid "Takes effect the next time the game starts."
+msgstr "Se aplica la próxima vez que se inicie el juego."
+
+#: src/app/app.cpp:1429
+msgid "Shortcut"
+msgstr "Acceso directo"
+
+#: src/app/app.cpp:1430
+msgid "A shortcut starts the game directly, skipping the launcher."
+msgstr "Un acceso directo inicia el juego sin pasar por el lanzador."
+
+#: src/app/app.cpp:1437
+msgid "Applications"
+msgstr "Aplicaciones"
+
+#: src/app/app.cpp:1439
+msgid "Start menu"
+msgstr "menú Inicio"
+
+#: src/app/app.cpp:1441
+msgid "applications menu"
+msgstr "menú de aplicaciones"
+
+#: src/app/app.cpp:1452
+msgid "Desktop"
+msgstr "Escritorio"
+
+#: src/app/app.cpp:1454
+msgid "Update {0} shortcut"
+msgstr "Actualizar acceso directo ({0})"
+
+#: src/app/app.cpp:1454
+msgid "Add to {0}"
+msgstr "Añadir a {0}"
+
+#: src/app/app.cpp:1465
+msgid "Remove"
+msgstr "Quitar"
+
+#: src/app/app.cpp:1465
+msgid "Remove shortcut"
+msgstr "Quitar acceso directo"
+
+#: src/app/app.cpp:1476
+msgid "Replace existing item?"
+msgstr "¿Reemplazar el elemento existente?"
+
+#: src/app/app.cpp:1481
+msgid "already exists and was not made by SuperSaga."
+msgstr "ya existe y no lo creó SuperSaga."
+
+#: src/app/app.cpp:1482
+msgid "Replace it? The existing item is moved to the Trash."
+msgstr "¿Reemplazarlo? El elemento existente se moverá a la papelera."
+
+#: src/app/app.cpp:1483
+msgid "Replace"
+msgstr "Reemplazar"
+
+#: src/app/app.cpp:1488
+msgid "Keep it"
+msgstr "Conservarlo"
+
+#: src/app/app.cpp:1489
+msgid "Left the existing item alone."
+msgstr "El elemento existente no se tocó."
+
+#: src/app/app.cpp:1595
+msgid "Exported {0}."
+msgstr "{0} exportada."
+
+#: src/app/app.cpp:1602
+msgid "Imported into {0}."
+msgstr "Importado en {0}."
+
+#: src/app/app.cpp:1611
+msgid "Could not read that BIOS file."
+msgstr "No se pudo leer ese archivo de BIOS."
+
+#: src/app/app.cpp:1613
+msgid "BIOS set. It is used the next time the game starts."
+msgstr "BIOS establecida. Se usará la próxima vez que se inicie el juego."
+
+#: src/app/platform.cpp:87
+msgid "Windows could not create a shortcut object."
+msgstr "Windows no pudo crear el acceso directo."
+
+#: src/app/platform.cpp:104
+msgid "Could not save {0}"
+msgstr "No se pudo guardar {0}"
+
+#: src/app/platform.cpp:138
+msgid "The ROM file could not be found:\n{0}"
+msgstr "No se encontró el archivo ROM:\n{0}"
+
+#: src/app/platform.cpp:143
+msgid "That file is not a Game Boy Advance ROM."
+msgstr "Ese archivo no es una ROM de Game Boy Advance."
+
+#: src/app/platform.cpp:148
+msgid "That ROM is not the supported dump.\nFound: {0} [{1}] rev {2}\nNeeded: {3} [{4}] rev {5}\nSHA-1 {6}"
+msgstr "Esa ROM no es el volcado compatible.\nEncontrada: {0} [{1}] rev. {2}\nNecesaria: {3} [{4}] rev. {5}\nSHA-1 {6}"
+
+#: src/app/platform.cpp:308
+msgid "There is no shortcut to remove."
+msgstr "No hay ningún acceso directo que quitar."
+
+#: src/app/platform.cpp:309
+msgid "{0} was not created by SuperSaga, so it was left alone."
+msgstr "{0} no lo creó SuperSaga, así que no se tocó."
+
+#: src/app/platform.cpp:313
+msgid "Could not move {0} to the Trash."
+msgstr "No se pudo mover {0} a la papelera."
+
+#: src/app/platform.cpp:317
+msgid "Shortcut moved to the Trash."
+msgstr "Acceso directo movido a la papelera."
+
+#: src/app/platform.cpp:325
+msgid "Could not find the SuperSaga program on disk."
+msgstr "No se encontró el programa SuperSaga en el disco."
+
+#: src/app/platform.cpp:330
+msgid "Creating shortcuts is not available on this system yet."
+msgstr "Crear accesos directos aún no está disponible en este sistema."
+
+#: src/app/platform.cpp:339
+msgid "SuperSaga itself is already at {0}."
+msgstr "SuperSaga ya está en {0}."
+
+#: src/app/platform.cpp:348
+msgid "{0} already exists and was not created by SuperSaga. Replace it? (It will be moved to the Trash.)"
+msgstr "{0} ya existe y no lo creó SuperSaga. ¿Reemplazarlo? (Se moverá a la papelera.)"
+
+#: src/app/platform.cpp:353
+msgid "Could not move the existing {0} to the Trash."
+msgstr "No se pudo mover {0} existente a la papelera."
+
+#: src/app/platform.cpp:365
+msgid "Could not create {0}: {1}"
+msgstr "No se pudo crear {0}: {1}"
+
+#: src/app/platform.cpp:435
+msgid "Shortcut updated:\n{0}"
+msgstr "Acceso directo actualizado:\n{0}"
+
+#: src/app/platform.cpp:435
+msgid "Shortcut created:\n{0}"
+msgstr "Acceso directo creado:\n{0}"
+
+#: src/app/save_import.cpp:59
+msgid "That is a save state, not a battery save. Save states from other emulators can't be imported; use the in-game save file instead (.sav or .srm)."
+msgstr "Eso es un estado guardado, no una partida. Los estados de otros emuladores no se pueden importar; usa el archivo de partida del juego (.sav o .srm)."
+
+#: src/app/save_import.cpp:106
+msgid "This save is {0} and its extra data is not padding, so it is from another game. {1} uses a {2} save."
+msgstr "Esta partida ocupa {0} y sus datos extra no son relleno, así que es de otro juego. {1} usa una partida {2}."
+
+#: src/app/save_import.cpp:114
+msgid "The file is empty."
+msgstr "El archivo está vacío."
+
+#: src/app/save_import.cpp:117
+msgid "Unrecognized save size ({0} bytes). {1} uses a {2} save ({3} bytes, .sav or .srm)."
+msgstr "Tamaño de partida no reconocido ({0} bytes). {1} usa una partida {2} ({3} bytes, .sav o .srm)."
+
+#: src/app/save_import.cpp:123
+msgid "This save is blank, so importing it starts the game with no progress."
+msgstr "Esta partida está en blanco, así que importarla empieza el juego sin progreso."
+
+#: src/app/save_import.cpp:125
+msgid "This save doesn't belong to {0} (its game header is missing)."
+msgstr "Esta partida no pertenece a {0} (falta la cabecera del juego)."
+
+#: src/app/states.cpp:125
+msgid "Not a SuperSaga save state file."
+msgstr "No es un archivo de estado de SuperSaga."
+
+#: src/app/states.cpp:128
+msgid "This save state file is from a different version of SuperSaga."
+msgstr "Este archivo de estado es de otra versión de SuperSaga."
+
+#: src/app/states.cpp:134
+msgid "The save state file is damaged."
+msgstr "El archivo de estado está dañado."
+
+#: src/app/states.cpp:251
+msgid "Slot {0}"
+msgstr "Ranura {0}"
+
+#: src/app/states.cpp:325
+msgid "Made with a different ROM."
+msgstr "Creado con otra ROM."
+
+#: src/app/states.cpp:372
+msgid "That save state was made with a different ROM."
+msgstr "Ese estado se creó con otra ROM."
+
+#: src/app/states.cpp:391
+msgid "There is nothing to undo."
+msgstr "No hay nada que deshacer."
+
+#: src/app/theme.cpp:291
+msgid "None"
+msgstr "Ninguna"
+
+#: src/options/input.cpp:76
+msgid "Select"
+msgstr "Select"
+
+#: src/options/input.cpp:77
+msgid "Start"
+msgstr "Start"
+
+#: src/options/input.cpp:78
+msgid "Right"
+msgstr "Derecha"
+
+#: src/options/input.cpp:79
+msgid "Left"
+msgstr "Izquierda"
+
+#: src/options/input.cpp:80
+msgid "Up"
+msgstr "Arriba"
+
+#: src/options/input.cpp:81
+msgid "Down"
+msgstr "Abajo"
+
+#: src/options/input.cpp:123
+msgid "Up Arrow"
+msgstr "Flecha arriba"
+
+#: src/options/input.cpp:124
+msgid "Down Arrow"
+msgstr "Flecha abajo"
+
+#: src/options/input.cpp:125
+msgid "Left Arrow"
+msgstr "Flecha izquierda"
+
+#: src/options/input.cpp:126
+msgid "Right Arrow"
+msgstr "Flecha derecha"
+
+#: src/options/input.cpp:127
+msgid "Enter"
+msgstr "Intro"
+
+#: src/options/input.cpp:128
+msgid "Keypad Enter"
+msgstr "Intro (teclado num.)"
+
+#: src/options/input.cpp:129
+msgid "Space"
+msgstr "Espacio"
+
+#: src/options/input.cpp:130
+msgid "Page Up"
+msgstr "Re Pág"
+
+#: src/options/input.cpp:131
+msgid "Page Down"
+msgstr "Av Pág"
+
+#: src/options/input.cpp:133
+msgid "Left Command"
+msgstr "Comando izquierdo"
+
+#: src/options/input.cpp:134
+msgid "Right Command"
+msgstr "Comando derecho"
+
+#: src/options/input.cpp:135
+msgid "Left Option"
+msgstr "Opción izquierda"
+
+#: src/options/input.cpp:136
+msgid "Right Option"
+msgstr "Opción derecha"
+
+#: src/options/input.cpp:138
+msgid "Left Windows"
+msgstr "Windows izquierda"
+
+#: src/options/input.cpp:139
+msgid "Right Windows"
+msgstr "Windows derecha"
+
+#: src/options/input.cpp:144
+msgid "Key {0}"
+msgstr "Tecla {0}"
+
+#: src/options/input.cpp:148
+msgid "A Button"
+msgstr "Botón A"
+
+#: src/options/input.cpp:149
+msgid "B Button"
+msgstr "Botón B"
+
+#: src/options/input.cpp:150
+msgid "X Button"
+msgstr "Botón X"
+
+#: src/options/input.cpp:151
+msgid "Y Button"
+msgstr "Botón Y"
+
+#: src/options/input.cpp:152
+msgid "Back Button"
+msgstr "Botón Atrás"
+
+#: src/options/input.cpp:153
+msgid "Home Button"
+msgstr "Botón Home"
+
+#: src/options/input.cpp:154
+msgid "Start Button"
+msgstr "Botón Start"
+
+#: src/options/input.cpp:155
+msgid "Left Stick Press"
+msgstr "Pulsar stick izquierdo"
+
+#: src/options/input.cpp:156
+msgid "Right Stick Press"
+msgstr "Pulsar stick derecho"
+
+#: src/options/input.cpp:157
+msgid "Left Bumper"
+msgstr "Botón superior izquierdo"
+
+#: src/options/input.cpp:158
+msgid "Right Bumper"
+msgstr "Botón superior derecho"
+
+#: src/options/input.cpp:159
+msgid "Up D-Pad"
+msgstr "Cruceta arriba"
+
+#: src/options/input.cpp:160
+msgid "Down D-Pad"
+msgstr "Cruceta abajo"
+
+#: src/options/input.cpp:161
+msgid "Left D-Pad"
+msgstr "Cruceta izquierda"
+
+#: src/options/input.cpp:162
+msgid "Right D-Pad"
+msgstr "Cruceta derecha"
+
+#: src/options/input.cpp:163
+msgid "Share Button"
+msgstr "Botón Compartir"
+
+#: src/options/input.cpp:164
+msgid "Right Paddle 1"
+msgstr "Paleta derecha 1"
+
+#: src/options/input.cpp:165
+msgid "Left Paddle 1"
+msgstr "Paleta izquierda 1"
+
+#: src/options/input.cpp:166
+msgid "Right Paddle 2"
+msgstr "Paleta derecha 2"
+
+#: src/options/input.cpp:167
+msgid "Left Paddle 2"
+msgstr "Paleta izquierda 2"
+
+#: src/options/input.cpp:168
+msgid "Touchpad Press"
+msgstr "Pulsar panel táctil"
+
+#: src/options/input.cpp:169
+msgid "Extra Button 2"
+msgstr "Botón extra 2"
+
+#: src/options/input.cpp:170
+msgid "Extra Button 3"
+msgstr "Botón extra 3"
+
+#: src/options/input.cpp:171
+msgid "Extra Button 4"
+msgstr "Botón extra 4"
+
+#: src/options/input.cpp:172
+msgid "Extra Button 5"
+msgstr "Botón extra 5"
+
+#: src/options/input.cpp:173
+msgid "Extra Button 6"
+msgstr "Botón extra 6"
+
+#: src/options/input.cpp:174
+msgid "Controller Button {0}"
+msgstr "Botón del mando {0}"
+
+#: src/options/input.cpp:179
+msgid "Left Stick Left"
+msgstr "Stick izquierdo a la izquierda"
+
+#: src/options/input.cpp:179
+msgid "Left Stick Right"
+msgstr "Stick izquierdo a la derecha"
+
+#: src/options/input.cpp:180
+msgid "Left Stick Up"
+msgstr "Stick izquierdo arriba"
+
+#: src/options/input.cpp:180
+msgid "Left Stick Down"
+msgstr "Stick izquierdo abajo"
+
+#: src/options/input.cpp:181
+msgid "Right Stick Left"
+msgstr "Stick derecho a la izquierda"
+
+#: src/options/input.cpp:181
+msgid "Right Stick Right"
+msgstr "Stick derecho a la derecha"
+
+#: src/options/input.cpp:182
+msgid "Right Stick Up"
+msgstr "Stick derecho arriba"
+
+#: src/options/input.cpp:182
+msgid "Right Stick Down"
+msgstr "Stick derecho abajo"
+
+#: src/options/input.cpp:183
+msgid "Left Trigger"
+msgstr "Gatillo izquierdo"
+
+#: src/options/input.cpp:184
+msgid "Right Trigger"
+msgstr "Gatillo derecho"
+
+#: src/options/input.cpp:185
+msgid "Controller Axis {0}"
+msgstr "Eje del mando {0}"
+
+#: src/options/input.cpp:189
+msgid "Joystick Button {0}"
+msgstr "Botón del joystick {0}"
+
+#: src/options/input.cpp:191
+msgid "Joystick Axis {0}"
+msgstr "Eje del joystick {0}"
+
+#: src/options/input.cpp:195
+msgid "Joystick Hat {0} {1}"
+msgstr "Cruceta del joystick {0} {1}"
+
+#: src/options/input.cpp:199
+msgid "Middle Mouse Button"
+msgstr "Botón central del ratón"
+
+#: src/options/input.cpp:200
+msgid "Mouse Button 4"
+msgstr "Botón del ratón 4"
+
+#: src/options/input.cpp:201
+msgid "Mouse Button 5"
+msgstr "Botón del ratón 5"
+
+#: src/options/input.cpp:202
+msgid "Mouse Button {0}"
+msgstr "Botón del ratón {0}"
+
+#: src/options/input.cpp:303
+msgid "Save state"
+msgstr "Guardar estado"
+
+#: src/options/input.cpp:305
+msgid "Load state"
+msgstr "Cargar estado"
+
+#: src/options/input.cpp:306
+msgid "Previous slot"
+msgstr "Ranura anterior"
+
+#: src/options/input.cpp:307
+msgid "Next slot"
+msgstr "Ranura siguiente"
+
+#: src/options/input.cpp:598
+msgid "Controller disconnected"
+msgstr "Mando desconectado"
+
+#: src/options/input.cpp:727
+msgid "{0} unbound"
+msgstr "{0}: sin asignar"
+
+#: src/options/input.cpp:766
+msgid "Remap cancelled"
+msgstr "Reasignación cancelada"
+
+#: src/options/input.cpp:792
+msgid "Rebinding controls. Esc keeps the current binding."
+msgstr "Reasignando controles. Esc mantiene la asignación actual."
+
+#: src/options/input.cpp:797
+msgid "Press a key for {0}  (now: {1})"
+msgstr "Pulsa una tecla para {0}  (ahora: {1})"
+
+#: src/options/input.cpp:798
+msgid "Press a controller button for {0}  (now: {1})"
+msgstr "Pulsa un botón del mando para {0}  (ahora: {1})"
+
+#: src/options/input.cpp:809
+msgid "Press a key or controller button(s) for {0}  (now: {1})"
+msgstr "Pulsa una tecla o botón(es) del mando para {0}  (ahora: {1})"
+
+#: src/options/input.cpp:812
+msgid "Press a key or controller button for {0}  (now: {1})"
+msgstr "Pulsa una tecla o un botón del mando para {0}  (ahora: {1})"
+
+#: src/options/input.cpp:815
+msgid "Press a key or pad button for {0}  (now: {1})"
+msgstr "Pulsa una tecla o botón para {0}  (ahora: {1})"
+
+#: src/options/input.cpp:850
+msgid "Controls saved"
+msgstr "Controles guardados"
+
+#: src/options/input.cpp:896
+msgid "Controls reset to defaults"
+msgstr "Controles restablecidos"
+
+#: src/options/input.cpp:948
+msgid "Controller connected: {0}"
+msgstr "Mando conectado: {0}"
+
+#: src/options/input.cpp:948
+msgid "gamepad"
+msgstr "mando"
+
+#: src/options/options_panel.cpp:105
+msgid "Off (original 3:2)"
+msgstr "Desactivado (3:2 original)"
+
+#: src/options/options_panel.cpp:116
+msgid "Size and shape"
+msgstr "Tamaño y forma"
+
+#: src/options/options_panel.cpp:118
+msgid "Pixel perfect (integer scaling)"
+msgstr "Píxeles perfectos (escala entera)"
+
+#: src/options/options_panel.cpp:119
+msgid "Every GBA pixel becomes an exact block of screen pixels, so nothing shimmers or blurs. Leaves a small border when the window is not an exact multiple."
+msgstr "Cada píxel de GBA se convierte en un bloque exacto de píxeles de pantalla, así que nada parpadea ni se difumina. Deja un pequeño borde si la ventana no es un múltiplo exacto."
+
+#: src/options/options_panel.cpp:121
+msgid "Fit to window"
+msgstr "Ajustar a la ventana"
+
+#: src/options/options_panel.cpp:122
+msgid "Fills as much of the window as possible. Some pixels end up one screen pixel wider than others."
+msgstr "Llena la ventana todo lo posible. Algunos píxeles quedan un píxel de pantalla más anchos que otros."
+
+#: src/options/options_panel.cpp:129
+msgid "Widescreen view"
+msgstr "Vista panorámica"
+
+#: src/options/options_panel.cpp:139
+msgid "Shows more of the room at the left and right instead of stretching the picture. Pixels always stay square, and text boxes stay where they were. Screens without a scrolling room behind them, like menus and the title screen, stay 3:2, and past the edge of a room the sides are black."
+msgstr "Muestra más de la sala a izquierda y derecha en lugar de estirar la imagen. Los píxeles siguen siendo cuadrados y los cuadros de texto no se mueven. Las pantallas sin una sala con desplazamiento detrás, como los menús y la pantalla de título, siguen en 3:2, y más allá del borde de una sala los lados son negros."
+
+#: src/options/options_panel.cpp:146
+msgid "Fullscreen"
+msgstr "Pantalla completa"
+
+#: src/options/options_panel.cpp:150
+msgid "F11 also switches fullscreen."
+msgstr "F11 también cambia a pantalla completa."
+
+#: src/options/options_panel.cpp:152
+msgid "Look"
+msgstr "Aspecto"
+
+#: src/options/options_panel.cpp:154
+msgid "Original GBA screen colors"
+msgstr "Colores originales de la pantalla de GBA"
+
+#: src/options/options_panel.cpp:158
+msgid "Softer, less saturated colors like the original unlit GBA screen. The game's colors were chosen for that screen, so this is how they were meant to look."
+msgstr "Colores más suaves y menos saturados, como la pantalla original sin luz de la GBA. Los colores del juego se eligieron para esa pantalla, así que así debían verse."
+
+#: src/options/options_panel.cpp:161
+msgid "Frame blending"
+msgstr "Mezcla de fotogramas"
+
+#: src/options/options_panel.cpp:161
+msgid "Off"
+msgstr "Desactivado"
+
+#: src/options/options_panel.cpp:162
+msgid "Blend two frames"
+msgstr "Mezclar dos fotogramas"
+
+#: src/options/options_panel.cpp:163
+msgid "LCD ghosting"
+msgstr "Estela LCD"
+
+#: src/options/options_panel.cpp:172
+msgid "GBA games flicker some sprites every other frame on purpose, counting on the slow GBA screen to smooth it out. Blending averages frames to match. LCD ghosting also leaves short trails like the real screen."
+msgstr "Los juegos de GBA hacen parpadear algunos sprites cada dos fotogramas a propósito, contando con que la lenta pantalla de la GBA lo suavice. La mezcla promedia fotogramas para imitarlo. La estela LCD además deja rastros cortos como la pantalla real."
+
+#: src/options/options_panel.cpp:176
+msgid "Pixel grid"
+msgstr "Rejilla de píxeles"
+
+#: src/options/options_panel.cpp:176
+msgid "LCD subpixels"
+msgstr "Subpíxeles LCD"
+
+#: src/options/options_panel.cpp:176
+msgid "Scanlines"
+msgstr "Líneas de escaneo"
+
+#: src/options/options_panel.cpp:178
+msgid "Screen overlay"
+msgstr "Filtro de pantalla"
+
+#: src/options/options_panel.cpp:182
+msgid "Pixel grid draws thin lines between pixels like the GBA's visible pixel gaps. LCD subpixels adds red, green and blue stripes. Overlays need at least 2x scaling (3x for subpixels)."
+msgstr "La rejilla de píxeles dibuja líneas finas entre píxeles como los huecos visibles de la GBA. Los subpíxeles LCD añaden franjas rojas, verdes y azules. Los filtros necesitan al menos escala 2x (3x para subpíxeles)."
+
+#: src/options/options_panel.cpp:186
+msgid "Overlay strength"
+msgstr "Intensidad del filtro"
+
+#: src/options/options_panel.cpp:201
+msgid "Press any key..."
+msgstr "Pulsa cualquier tecla..."
+
+#: src/options/options_panel.cpp:209
+msgid "Keyboard / Mouse"
+msgstr "Teclado / Ratón"
+
+#: src/options/options_panel.cpp:210
+msgid "Controller"
+msgstr "Mando"
+
+#: src/options/options_panel.cpp:244
+msgid "Buttons"
+msgstr "Botones"
+
+#: src/options/options_panel.cpp:246
+msgid "Select a binding and press Enter, A or click it, then press the new key or controller button. Keyboard and controller bindings are kept apart, so both keep working. Delete (Backspace) or X on a controller clears one."
+msgstr "Selecciona una asignación y pulsa Intro, A o haz clic, y luego pulsa la nueva tecla o botón del mando. Las asignaciones de teclado y mando van por separado, así que ambas siguen funcionando. Supr (Retroceso) o X en el mando borra una."
+
+#: src/options/options_panel.cpp:249
+msgid "Controllers connected: {0}"
+msgstr "Mandos conectados: {0}"
+
+#: src/options/options_panel.cpp:250
+msgid "Any button your controller reports can be bound, including paddles, back buttons and extra buttons. Mouse buttons 4 and 5 go in the keyboard column. Buttons remapped by Steam Input or another remapper work as whatever they send."
+msgstr "Se puede asignar cualquier botón que informe tu mando, incluidas palancas traseras, botones traseros y botones extra. Los botones 4 y 5 del ratón van en la columna del teclado. Los botones reasignados con Steam Input u otra herramienta funcionan como lo que envíen."
+
+#: src/options/options_panel.cpp:255
+msgid "GBA button"
+msgstr "Botón de GBA"
+
+#: src/options/options_panel.cpp:281
+msgid "Extra controls"
+msgstr "Controles extra"
+
+#: src/options/options_panel.cpp:282
+msgid "Optional buttons for things the GBA does with held buttons. They start unbound, and are a good use for paddles, back buttons and other extras."
+msgstr "Botones opcionales para lo que la GBA hace manteniendo botones. Empiezan sin asignar y vienen bien para palancas traseras, botones traseros y otros extras."
+
+#: src/options/options_panel.cpp:285
+msgid "Action"
+msgstr "Acción"
+
+#: src/options/options_panel.cpp:309
+msgid "Turbo"
+msgstr "Turbo"
+
+#: src/options/options_panel.cpp:313
+msgid "Turbo buttons"
+msgstr "Botones turbo"
+
+#: src/options/options_panel.cpp:317
+msgid "While you hold a turbo button, the game sees it pressed over and over. Handy for rapid fire, but turn it off for a button you need to hold, such as B to inhale."
+msgstr "Mientras mantienes un botón turbo, el juego lo ve pulsado una y otra vez. Útil para disparo rápido, pero desactívalo en botones que debas mantener, como B para inhalar."
+
+#: src/options/options_panel.cpp:323
+msgid "Turbo rate"
+msgstr "Velocidad del turbo"
+
+#: src/options/options_panel.cpp:324
+msgid "%d press per second"
+msgstr "%d pulsación por segundo"
+
+#: src/options/options_panel.cpp:324
+msgid "%d presses per second"
+msgstr "%d pulsaciones por segundo"
+
+#: src/options/options_panel.cpp:330
+msgid "Turbo on:"
+msgstr "Turbo en:"
+
+#: src/options/options_panel.cpp:353
+msgid "Shortcuts"
+msgstr "Atajos"
+
+#: src/options/options_panel.cpp:354
+msgid "For a controller shortcut, hold the buttons together (up to two) and let go. F1, F11 and Esc are kept for the menu and fullscreen."
+msgstr "Para un atajo de mando, mantén los botones a la vez (hasta dos) y suéltalos. F1, F11 y Esc se reservan para el menú y la pantalla completa."
+
+#: src/options/options_panel.cpp:382
+msgid "Rebind all"
+msgstr "Reasignar todo"
+
+#: src/options/options_panel.cpp:384
+msgid "Reset to defaults"
+msgstr "Restablecer"
+
+#: src/options/options_panel.cpp:392
+msgid "Stick dead zone"
+msgstr "Zona muerta del stick"
+
+#: src/options/options_panel.cpp:396
+msgid "How far a stick or trigger must move before it counts as a press."
+msgstr "Cuánto debe moverse un stick o gatillo antes de contar como pulsación."
+
+#: src/options/options_panel.cpp:453
+msgid "Your game file, how it starts, and shortcuts."
+msgstr "Tu archivo de juego, cómo se inicia y los accesos directos."
+
+#: src/options/options_panel.cpp:454
+msgid "How the game is drawn on your screen."
+msgstr "Cómo se dibuja el juego en tu pantalla."
+
+#: src/options/options_panel.cpp:455
+msgid "Keyboard and controller buttons, turbo and shortcuts."
+msgstr "Teclas y botones del mando, turbo y atajos."
+
+#: src/options/options_panel.cpp:456
+msgid "Save states: save and load anywhere."
+msgstr "Estados guardados: guarda y carga en cualquier momento."
+
+#: src/options/options_panel.cpp:457
+msgid "Optional changes to the game."
+msgstr "Cambios opcionales en el juego."
+
+#: src/options/options_panel.cpp:458
+msgid "RetroAchievements sign-in and progress."
+msgstr "Sesión y progreso de RetroAchievements."
+
+#: src/options/options_panel.cpp:459
+msgid "Your version and new releases."
+msgstr "Tu versión y las nuevas versiones."
+
+#: src/options/options_panel.cpp:460
+msgid "Version, credits and licenses."
+msgstr "Versión, créditos y licencias."
+
+#: src/options/options_panel.cpp:467
+msgid "Game Settings"
+msgstr "Ajustes del juego"
+
+#: src/options/options_panel.cpp:468
+msgid "Display Settings"
+msgstr "Ajustes de pantalla"
+
+#: src/options/options_panel.cpp:469
+msgid "Controls Settings"
+msgstr "Ajustes de controles"
+
+#: src/options/options_panel.cpp:470
+msgid "States Settings"
+msgstr "Estados guardados"
+
+#: src/options/options_panel.cpp:471
+msgid "Cheats Settings"
+msgstr "Trucos"
+
+#: src/options/options_panel.cpp:472
+msgid "Achievements Settings"
+msgstr "Logros"
+
+#: src/options/options_panel.cpp:473
+msgid "Updates Settings"
+msgstr "Actualizaciones"
+
+#: src/options/options_panel.cpp:474
+msgid "About Settings"
+msgstr "Acerca de"
+
+#: src/options/options_panel.cpp:475
+msgid "{0} Settings"
+msgstr "Ajustes: {0}"
+
+#: src/options/options_panel.cpp:486
+msgid "Display"
+msgstr "Pantalla"
+
+#: src/options/options_panel.cpp:487
+msgid "Controls"
+msgstr "Controles"
+
+#: src/options/options_panel.cpp:736
+msgid "Resume game"
+msgstr "Reanudar partida"
+
+#: src/options/options_panel.cpp:737
+msgid "Close"
+msgstr "Cerrar"
+
+#: src/options/options_panel.cpp:757
+msgid "Quit to launcher"
+msgstr "Volver al lanzador"
+
+#: src/options/options_panel.cpp:765
+msgid "F1 or Esc closes this menu"
+msgstr "F1 o Esc cierra este menú"
+
+#: src/update/http.cpp:32
+msgid "Refusing to download from a non-HTTPS address."
+msgstr "No se descarga desde una dirección que no es HTTPS."
+
+#: src/update/http.cpp:56
+msgid "Couldn't reach the update server. Check your internet connection."
+msgstr "No se pudo contactar con el servidor de actualizaciones. Comprueba tu conexión a Internet."
+
+#: src/update/http.cpp:57
+msgid "The update server took too long to answer."
+msgstr "El servidor de actualizaciones tardó demasiado en responder."
+
+#: src/update/http.cpp:58
+msgid "The secure connection to the update server failed."
+msgstr "Falló la conexión segura con el servidor de actualizaciones."
+
+#: src/update/http.cpp:83
+msgid "Bad download address."
+msgstr "Dirección de descarga no válida."
+
+#: src/update/http.cpp:138
+msgid "Couldn't write the download to disk."
+msgstr "No se pudo escribir la descarga en el disco."
+
+#: src/update/http.cpp:145
+msgid "Cancelled."
+msgstr "Cancelado."
+
+#: src/update/http.cpp:194
+msgid "Downloading updates needs the curl command, which wasn't found."
+msgstr "Descargar actualizaciones requiere el comando curl, que no se encontró."
+
+#: src/update/update_core.cpp:260
+msgid "The update server sent a reply SuperSaga couldn't read."
+msgstr "El servidor de actualizaciones envió una respuesta que SuperSaga no pudo leer."
+
+#: src/update/update_core.cpp:272
+msgid "No releases have been published yet."
+msgstr "Aún no se ha publicado ninguna versión."
+
+#: src/update/update_core.cpp:273
+msgid "The update server's reply had no version in it."
+msgstr "La respuesta del servidor de actualizaciones no incluía versión."
+
+#: src/update/update_core.cpp:414
+msgid "Couldn't open the downloaded update."
+msgstr "No se pudo abrir la actualización descargada."
+
+#: src/update/update_core.cpp:417
+msgid "The downloaded update is not a valid zip file."
+msgstr "La actualización descargada no es un archivo zip válido."
+
+#: src/update/update_core.cpp:428
+msgid "The update's zip file is damaged."
+msgstr "El archivo zip de la actualización está dañado."
+
+#: src/update/update_core.cpp:437
+msgid "The update's zip file uses a format SuperSaga doesn't support (zip64)."
+msgstr "El archivo zip de la actualización usa un formato que SuperSaga no admite (zip64)."
+
+#: src/update/update_core.cpp:451
+msgid "The update's zip file is cut short."
+msgstr "El archivo zip de la actualización está incompleto."
+
+#: src/update/update_core.cpp:460
+msgid "Couldn't unpack the update."
+msgstr "No se pudo descomprimir la actualización."
+
+#: src/update/update_core.cpp:470
+msgid "This build of SuperSaga can't unpack zip updates."
+msgstr "Esta compilación de SuperSaga no puede descomprimir actualizaciones zip."
+
+#: src/update/update_core.cpp:473
+msgid "The update's zip file uses an unsupported compression method."
+msgstr "El archivo zip de la actualización usa un método de compresión no compatible."
+
+#: src/update/update_ui.cpp:77
+msgid "Not checked yet."
+msgstr "Aún no se ha comprobado."
+
+#: src/update/update_ui.cpp:78
+msgid "Checking for updates..."
+msgstr "Buscando actualizaciones..."
+
+#: src/update/update_ui.cpp:80
+msgid "You have the latest version ({0})."
+msgstr "Tienes la última versión ({0})."
+
+#: src/update/update_ui.cpp:83
+msgid "SuperSaga {0} is available. You have {1}."
+msgstr "SuperSaga {0} está disponible. Tienes la {1}."
+
+#: src/update/update_ui.cpp:86
+msgid "Downloading SuperSaga {0}..."
+msgstr "Descargando SuperSaga {0}..."
+
+#: src/update/update_ui.cpp:88
+msgid "{0} of {1}"
+msgstr "{0} de {1}"
+
+#: src/update/update_ui.cpp:94
+msgid "Checking the download..."
+msgstr "Comprobando la descarga..."
+
+#: src/update/update_ui.cpp:96
+msgid "SuperSaga {0} is downloaded and verified."
+msgstr "SuperSaga {0} está descargado y verificado."
+
+#: src/update/update_ui.cpp:97
+msgid "SuperSaga saves your game, then restarts as the new version. Saves, save states and settings are kept."
+msgstr "SuperSaga guarda tu partida y se reinicia con la nueva versión. Se conservan las partidas, los estados y los ajustes."
+
+#: src/update/update_ui.cpp:102
+msgid "Couldn't check for updates right now."
+msgstr "No se pudieron buscar actualizaciones ahora."
+
+#: src/update/update_ui.cpp:104
+msgid "The update failed."
+msgstr "La actualización falló."
+
+#: src/update/update_ui.cpp:116
+msgid "Download and install"
+msgstr "Descargar e instalar"
+
+#: src/update/update_ui.cpp:122
+msgid "View on GitHub"
+msgstr "Ver en GitHub"
+
+#: src/update/update_ui.cpp:122
+msgid "Open the download page"
+msgstr "Abrir la página de descarga"
+
+#: src/update/update_ui.cpp:125
+msgid "Skip this version"
+msgstr "Omitir esta versión"
+
+#: src/update/update_ui.cpp:129
+msgid "(skipped: you won't be reminded about {0})"
+msgstr "(omitida: no se te recordará la {0})"
+
+#: src/update/update_ui.cpp:133
+msgid "Restart and update"
+msgstr "Reiniciar y actualizar"
+
+#: src/update/update_ui.cpp:139
+msgid "Couldn't install the update: {0} Nothing was changed."
+msgstr "No se pudo instalar la actualización: {0} No se cambió nada."
+
+#: src/update/update_ui.cpp:156
+msgid "What's new in {0}"
+msgstr "Novedades de la {0}"
+
+#: src/update/update_ui.cpp:175
+msgid "Update available"
+msgstr "Actualización disponible"
+
+#: src/update/update_ui.cpp:175
+msgid "SuperSaga {0} is out. Open Settings (F1), Updates tab."
+msgstr "Ya salió SuperSaga {0}. Abre Ajustes (F1), pestaña Actualizaciones."
+
+#: src/update/update_ui.cpp:180
+msgid "Version"
+msgstr "Versión"
+
+#: src/update/update_ui.cpp:185
+msgid "Check for updates"
+msgstr "Buscar actualizaciones"
+
+#: src/update/update_ui.cpp:192
+msgid "Automatic checks"
+msgstr "Comprobación automática"
+
+#: src/update/update_ui.cpp:194
+msgid "Check for updates when SuperSaga opens"
+msgstr "Buscar actualizaciones al abrir SuperSaga"
+
+#: src/update/update_ui.cpp:196
+msgid "SuperSaga asks GitHub whether a newer version is out. Nothing about you, your game or your saves is sent, and nothing installs without your OK."
+msgstr "SuperSaga pregunta a GitHub si hay una versión más nueva. No se envía nada sobre ti, tu juego ni tus partidas, y nada se instala sin tu permiso."
+
+#: src/update/update_ui.cpp:208
+msgid "SuperSaga {0} is ready to install"
+msgstr "SuperSaga {0} está listo para instalar"
+
+#: src/update/update_ui.cpp:209
+msgid "SuperSaga {0} is available"
+msgstr "SuperSaga {0} está disponible"
+
+#: src/update/update_ui.cpp:210
+msgid "Install..."
+msgstr "Instalar..."
+
+#: src/update/update_ui.cpp:210
+msgid "Update..."
+msgstr "Actualizar..."
+
+#: src/update/update_ui.cpp:221
+msgid "Update SuperSaga"
+msgstr "Actualizar SuperSaga"
+
+#: src/update/updater.cpp:98
+msgid "This copy of SuperSaga isn't an app bundle, so it can't update itself."
+msgstr "Esta copia de SuperSaga no es un paquete de app, así que no puede actualizarse sola."
+
+#: src/update/updater.cpp:103
+msgid "macOS is running SuperSaga from a temporary location. Move SuperSaga to your Applications folder, open it from there, and it can update itself."
+msgstr "macOS ejecuta SuperSaga desde una ubicación temporal. Mueve SuperSaga a tu carpeta Aplicaciones, ábrelo desde ahí y podrá actualizarse solo."
+
+#: src/update/updater.cpp:112
+msgid "SuperSaga is running from the disk image. Drag it to Applications to get automatic updates."
+msgstr "SuperSaga se está ejecutando desde la imagen de disco. Arrástralo a Aplicaciones para tener actualizaciones automáticas."
+
+#: src/update/updater.cpp:113
+msgid "SuperSaga can't write to {0}, so it can't update itself there."
+msgstr "SuperSaga no puede escribir en {0}, así que no puede actualizarse ahí."
+
+#: src/update/updater.cpp:119
+msgid "Couldn't find the SuperSaga program on disk."
+msgstr "No se encontró el programa SuperSaga en el disco."
+
+#: src/update/updater.cpp:127
+msgid "SuperSaga can't write to its folder ({0}), so it can't update itself there."
+msgstr "SuperSaga no puede escribir en su carpeta ({0}), así que no puede actualizarse ahí."
+
+#: src/update/updater.cpp:132
+msgid "There are no SuperSaga downloads for this kind of computer yet."
+msgstr "Aún no hay descargas de SuperSaga para este tipo de ordenador."
+
+#: src/update/updater.cpp:137
+msgid "Only the AppImage version of SuperSaga updates itself. Update this copy the way you installed it."
+msgstr "Solo la versión AppImage de SuperSaga se actualiza sola. Actualiza esta copia del mismo modo en que la instalaste."
+
+#: src/update/updater.cpp:290
+msgid "Couldn't check for updates right now (GitHub is limiting requests). SuperSaga will try again the next time it opens."
+msgstr "No se pudieron buscar actualizaciones ahora (GitHub está limitando las solicitudes). SuperSaga lo volverá a intentar la próxima vez que se abra."
+
+#: src/update/updater.cpp:293
+msgid "Couldn't check for updates right now (GitHub had a problem). Try again later."
+msgstr "No se pudieron buscar actualizaciones ahora (GitHub tuvo un problema). Inténtalo más tarde."
+
+#: src/update/updater.cpp:305
+msgid "Couldn't understand the version number \"{0}\"."
+msgstr "No se entendió el número de versión \"{0}\"."
+
+#: src/update/updater.cpp:332
+msgid "This release has no download for your computer."
+msgstr "Esta versión no tiene descarga para tu ordenador."
+
+#: src/update/updater.cpp:333
+msgid "This release has no checksum file, so it can't be installed automatically."
+msgstr "Esta versión no tiene archivo de suma de comprobación, así que no puede instalarse automáticamente."
+
+#: src/update/updater.cpp:334
+msgid "This release's download is hosted somewhere unexpected, so it won't be installed automatically."
+msgstr "La descarga de esta versión está alojada en un sitio inesperado, así que no se instalará automáticamente."
+
+#: src/update/updater.cpp:366
+msgid "Couldn't download the checksums: {0}"
+msgstr "No se pudieron descargar las sumas de comprobación: {0}"
+
+#: src/update/updater.cpp:371
+msgid "The release's checksum file doesn't list {0}, so it won't be installed."
+msgstr "El archivo de sumas de comprobación no incluye {0}, así que no se instalará."
+
+#: src/update/updater.cpp:402
+msgid "The download didn't match the release's SHA-256 checksum, so it was thrown away. Nothing was changed. Try again later."
+msgstr "La descarga no coincidía con la suma SHA-256 de la versión, así que se descartó. No se cambió nada. Inténtalo más tarde."
+
+#: src/update/updater.cpp:414
+msgid "Couldn't open the downloaded disk image."
+msgstr "No se pudo abrir la imagen de disco descargada."
+
+#: src/update/updater.cpp:433
+msgid "The downloaded disk image doesn't contain SuperSaga."
+msgstr "La imagen de disco descargada no contiene SuperSaga."
+
+#: src/update/updater.cpp:438
+msgid "Couldn't copy the new version next to the current one."
+msgstr "No se pudo copiar la nueva versión junto a la actual."
+
+#: src/update/updater.cpp:450
+msgid "The download isn't a Windows program."
+msgstr "La descarga no es un programa de Windows."
+
+#: src/update/updater.cpp:464
+msgid "The download isn't an AppImage."
+msgstr "La descarga no es un AppImage."
+
+#: src/update/updater.cpp:470
+msgid "Couldn't make the new AppImage executable."
+msgstr "No se pudo hacer ejecutable el nuevo AppImage."
+
+#: src/update/updater.cpp:491
+msgid "The update isn't ready yet."
+msgstr "La actualización aún no está lista."
+
+#: src/update/updater.cpp:500
+msgid "Couldn't move the current version aside: {0}"
+msgstr "No se pudo apartar la versión actual: {0}"
+
+#: src/update/updater.cpp:505
+msgid "Couldn't put the new version in place: {0}"
+msgstr "No se pudo colocar la nueva versión: {0}"
+
+#: src/update/updater.cpp:523
+msgid "Couldn't replace the AppImage: {0}"
+msgstr "No se pudo reemplazar el AppImage: {0}"
