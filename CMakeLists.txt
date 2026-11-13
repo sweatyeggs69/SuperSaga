@@ -172,6 +172,7 @@ if(TARGET SDL3::SDL3)
         src/options/options_panel.cpp
         src/options/presenter.cpp
         src/options/input.cpp
+        src/options/menu_pad.cpp
     )
     target_include_directories(supersaga_options PUBLIC src)
     target_link_libraries(supersaga_options PUBLIC imgui supersaga_display supersaga_app supersaga_states SDL3::SDL3)

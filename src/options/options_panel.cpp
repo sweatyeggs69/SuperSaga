@@ -188,8 +188,8 @@ void display_tab(Config& config) {
 }
 
 // Key bindings tables: a name column, then one column per device, each cell a field that
-// rebinds when activated (Enter, controller A or a click) and clears on Delete, controller X or
-// a right click.
+// rebinds when activated (Enter, the controller's south button or a click) and clears on Delete,
+// the controller's west button (X on Xbox, Y on Nintendo, Square on PlayStation) or a right click.
 using input::Source;
 enum class CellAction { None, Rebind, Clear };
 
