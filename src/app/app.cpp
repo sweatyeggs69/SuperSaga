@@ -24,6 +24,7 @@
 #include "app/fsutil.h"
 #include "app/platform.h"
 #include "app/save_import.h"
+#include "app/rewind.h"
 #include "app/states.h"
 #include "app/licenses.h"
 #include "app/theme.h"
@@ -108,6 +109,14 @@ private:
     void draw_states_tab();
     void draw_cheats_tab(Config& config);
     bool cheats_allowed() const;
+    bool rewind_allowed() const;
+    void update_speed();  // fast forward and rewind, read once per refresh
+    rewind::History rewind_;
+    const gba::Gba* rewind_owner_ = nullptr;  // the game the history belongs to
+    int rewind_tick_ = 0;
+    bool rewinding_ = false;
+    bool rewind_key_was_held_ = false;
+    int ff_speed_ = 1;  // emulated frames per normal frame; 1 when not fast forwarding
     std::unique_ptr<states::Store> store_;
     int slot_ = states::kDefaultSlot;
     bool slot_was_auto_ = false;  // the saved current slot was the old Auto slot (0)
@@ -420,6 +429,7 @@ void App::set_menu_open(bool open) {
 }
 
 void App::return_to_launcher() {
+    controls_->set_fast_forward_latched(false);
     auto_save();
     options_menu_set_open(false);
     game_paused_ = true;
@@ -467,6 +477,12 @@ void App::update_emulation() {
         pixels = pattern_.data();
     } else if (screen_ == Screen::Game && game_ && options_menu_open()) {
         pixels = game_->framebuffer();  // paused under the settings menu
+    } else if (screen_ == Screen::Game && game_ && rewinding_) {
+        // Rewind: step back through the history, silently, one snapshot per frame.
+        if (const std::vector<std::uint8_t>* back = rewind_.step_back()) {
+            game_->load_state(*back);
+        }
+        pixels = game_->framebuffer();
     } else if (screen_ == Screen::Game && game_) {
         game_->set_wide_margin(game::kWidescreen ? display::wide_margin(presenter_->settings().aspect) : 0);
         while (script_pos_ < script_.size() && script_[script_pos_].first <= game_frames_)
@@ -488,6 +504,17 @@ void App::update_emulation() {
         }
         game_->take_audio(audio_buf_);
         pixels = game_->framebuffer();
+        // Rewind history: a snapshot every other frame (rewinding plays them back one per frame,
+        // so it runs at twice normal speed).
+        if (rewind_allowed()) {
+            if (++rewind_tick_ >= 2) {
+                rewind_tick_ = 0;
+                rewind_.set_limits(10 * 30, std::size_t(64) << 20);  // the last 10 seconds
+                rewind_.push(game_->save_state());
+            }
+        } else if (!rewind_.empty()) {
+            rewind_.clear();
+        }
     } else if (game_ && game_paused_) {
         pixels = game_->framebuffer();
     } else if (attract_) {
@@ -497,9 +524,10 @@ void App::update_emulation() {
         pixels = attract_->framebuffer();
     }
     if (pixels) SDL_UpdateTexture(frame_tex_, nullptr, pixels, kW * sizeof(std::uint16_t));
-    // Safety cap (~200 ms queued); normal sync comes from update_audio_rate().
-    if (audio_ && !audio_buf_.empty() && SDL_GetAudioStreamQueued(audio_) < gba::kAudioRate / 5 * 4) {
-        SDL_SetAudioStreamGain(audio_, opt_.silent_audio ? 0.0f : screen_ == Screen::Game ? 1.0f : 0.35f);
+    // Safety cap (~200 ms queued, of game time); normal sync comes from update_audio_rate().
+    if (audio_ && !audio_buf_.empty() && SDL_GetAudioStreamQueued(audio_) < gba::kAudioRate / 5 * 4 * ff_speed_) {
+        const bool ff_mute = ff_speed_ > 1 && !config_.get_bool("speed.fast_forward_sound", false);
+        SDL_SetAudioStreamGain(audio_, opt_.silent_audio || ff_mute ? 0.0f : screen_ == Screen::Game ? 1.0f : 0.35f);
         SDL_PutAudioStreamData(audio_, audio_buf_.data(), int(audio_buf_.size() * sizeof(std::int16_t)));
     }
 }
@@ -527,8 +555,10 @@ void App::update_audio_rate() {
     const double frame_bytes = gba::kAudioRate * kFrameSeconds * 4;  // stereo s16
     double fill = double(SDL_GetAudioStreamQueued(audio_)) / frame_bytes;  // in emulated frames
     audio_fill_avg_ = audio_fill_avg_ < 0 ? fill : audio_fill_avg_ * 0.95 + fill * 0.05;
-    const double target = 3.0;
-    double base = lockstep_ ? refresh_hz_ * kFrameSeconds : 1.0;
+    // While fast forwarding the sound plays faster too (same samples, played back quicker, no
+    // filtering), and each refresh uses ff_speed_ frames of audio, so keep that much more queued.
+    const double target = 2.0 + ff_speed_;
+    double base = (lockstep_ ? refresh_hz_ * kFrameSeconds : 1.0) * ff_speed_;
     double err = std::clamp((audio_fill_avg_ - target) / target, -1.0, 1.0);
     double ratio = base * (1.0 + 0.005 * err);
     SDL_SetAudioStreamFrequencyRatio(audio_, float(ratio));
@@ -872,6 +902,7 @@ bool App::load_slot(int slot) {
     }
     start_game();
     presenter_->reset_history();
+    rewind_.clear();
     if (achievements_) achievements_->state_loaded();
     show_toast("State loaded from slot " + std::to_string(slot), slot);
     states_msg_ = "Loaded " + states::slot_name(slot) + ".";
@@ -1283,6 +1314,40 @@ void App::draw_save_section() {
 
 bool App::cheats_allowed() const { return !(achievements_ && achievements_->hardcore()); }
 
+// Rewind keeps working in softcore, but RetroAchievements hardcore turns it off like save states.
+bool App::rewind_allowed() const { return cheats_allowed() && config_.get_bool("rewind.enabled", true); }
+
+void App::update_speed() {
+    if (game_.get() != rewind_owner_) {  // a new or restarted game: its history starts over
+        rewind_.clear();
+        rewind_owner_ = game_.get();
+        rewind_tick_ = 0;
+    }
+    const bool playing = screen_ == Screen::Game && game_ && !opt_.test_pattern && !options_menu_open();
+    const bool rewind_key = playing && controls_->hotkey_held(input::Hotkey::Rewind);
+    const bool was_rewinding = rewinding_;
+    rewinding_ = rewind_key && rewind_allowed();
+    if (rewind_key && !rewind_key_was_held_ && !rewinding_) {
+        presenter_->show_message(cheats_allowed() ? "Rewind is turned off (F1 > Controls)"
+                                                  : "Rewind is off in RetroAchievements hardcore mode",
+                                 3.0);
+    }
+    rewind_key_was_held_ = rewind_key;
+    if (rewinding_ && !was_rewinding && audio_) SDL_ClearAudioStream(audio_);  // stop the sound at once
+
+    const bool ff = playing && !rewinding_ &&
+                    (controls_->hotkey_held(input::Hotkey::FastForward) || controls_->fast_forward_latched());
+    const int speed = ff ? (config_.get_int("speed.fast_forward", 2) >= 4 ? 4 : 2) : 1;
+    if (speed != ff_speed_) {
+        // Back to normal speed: drop the fast audio still queued so the sound catches up at once.
+        if (speed == 1 && audio_) SDL_ClearAudioStream(audio_);
+        audio_fill_avg_ = -1;
+        ff_speed_ = speed;
+    }
+    if (rewinding_) presenter_->show_message(rewind_.depth() ? "<< Rewind" : "<< Rewind (no older history)", 0.2);
+    else if (ff_speed_ > 1) presenter_->show_message(">> Fast forward " + std::to_string(ff_speed_) + "x", 0.2);
+}
+
 void App::draw_cheats_tab(Config& config) {
     theme::section("Mario and Luigi");
     const bool allowed = cheats_allowed();
@@ -1560,6 +1625,8 @@ int App::run() {
             }
         }
 
+        update_speed();
+
         // How many emulated frames this refresh.
         int steps = 1;
         if (lockstep_) {
@@ -1589,6 +1656,7 @@ int App::run() {
                 ++steps;
             }
         }
+        steps *= ff_speed_;
         bool reached_end = false;
         for (int i = 0; i < steps; ++i) {
             update_emulation();

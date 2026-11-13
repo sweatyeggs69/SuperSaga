@@ -347,11 +347,32 @@ void controls_tab(input::Manager& in, Config& config) {
     }
 
     ImGui::Spacing();
+    theme::section("Fast forward and rewind");
+    ImGui::TextWrapped("Hold Tab (or click the right stick) to fast forward, and hold ` (the key "
+                       "above Tab, or click the left stick) to rewind. Change the buttons under "
+                       "Shortcuts below.");
+    {
+        const char* speeds[] = {"2x", "4x"};
+        int speed = config.get_int("speed.fast_forward", 2) >= 4 ? 1 : 0;
+        if (ImGui::Combo("Fast forward speed", &speed, speeds, 2))
+            config.set("speed.fast_forward", speed ? "4" : "2");
+        bool sound = config.get_bool("speed.fast_forward_sound", false);
+        if (theme::toggle("Sound while fast forwarding", &sound)) config.set_bool("speed.fast_forward_sound", sound);
+        help_marker("Off: fast forward is silent. On: the game's sound plays faster along "
+                    "with the game.");
+        bool rewind = config.get_bool("rewind.enabled", true);
+        if (theme::toggle("Rewind", &rewind)) config.set_bool("rewind.enabled", rewind);
+        help_marker("Keeps the last 10 seconds of play so you can step back, at twice normal "
+                    "speed. Rewind is off in RetroAchievements hardcore mode, like save states and "
+                    "cheats.");
+    }
+
+    ImGui::Spacing();
     theme::section("Shortcuts");
     ImGui::TextWrapped("For a controller shortcut, hold the buttons together (up to two) and "
                        "let go. F1, F11 and Esc are kept for the menu and fullscreen.");
     const input::Hotkey hk_waiting = in.hotkey_remap_target();
-    if (begin_bindings_table("shortcuts", "Action", ImGui::CalcTextSize(input::name(input::Hotkey::SaveNewSlot)).x)) {
+    if (begin_bindings_table("shortcuts", "Action", ImGui::CalcTextSize(input::name(input::Hotkey::FastForwardToggle)).x)) {
         for (int i = 0; i < input::kHotkeyCount; ++i) {
             const auto h = input::Hotkey(i);
             ImGui::PushID(100 + i);
@@ -449,7 +470,7 @@ struct Page {
 const char* default_description(const std::string& name) {
     if (name == "Game") return "Your game file, how it starts, and shortcuts.";
     if (name == "Display") return "How the game is drawn on your screen.";
-    if (name == "Controls") return "Keyboard and controller buttons, turbo and shortcuts.";
+    if (name == "Controls") return "Keyboard and controller buttons, turbo, fast forward and shortcuts.";
     if (name == "States") return "Save states: save and load anywhere.";
     if (name == "Cheats") return "Optional changes to the game.";
     if (name == "Achievements") return "RetroAchievements sign-in and progress.";

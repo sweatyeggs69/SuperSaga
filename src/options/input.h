@@ -47,7 +47,9 @@ std::string display_name(const Binding& b);
 
 // Emulator shortcuts, stored as input.hotkey.<id> (id from key_name). Each shortcut is a list of
 // chords. A chord is one keyboard key, or one or two controller buttons held together.
-enum class Hotkey { SaveState, SaveNewSlot, LoadState, SlotPrev, SlotNext, Count };
+// FastForward and Rewind work while held (see Manager::hotkey_held); FastForwardToggle turns fast
+// forward on and off with each press.
+enum class Hotkey { SaveState, SaveNewSlot, LoadState, SlotPrev, SlotNext, FastForward, FastForwardToggle, Rewind, Count };
 inline constexpr int kHotkeyCount = static_cast<int>(Hotkey::Count);
 const char* name(Hotkey h);      // "Save state"
 const char* key_name(Hotkey h);  // "save_state"
@@ -103,6 +105,12 @@ public:
     // poll() with turbo and the extra actions applied. Call once per emulated frame; turbo timing
     // counts these calls.
     std::uint16_t poll_frame();
+    // True while every input of one of the shortcut's chords is held (for the hold shortcuts:
+    // fast forward and rewind). Always false while remapping or with shortcuts off.
+    bool hotkey_held(Hotkey h) const;
+    // Fast forward latched on by the toggle shortcut.
+    bool fast_forward_latched() const { return ff_latched_; }
+    void set_fast_forward_latched(bool on) { ff_latched_ = on; }
 
     // Remapping walks through every button in turn. The first key, pad button or stick
     // direction pressed replaces that button's bindings for that device type.
@@ -175,6 +183,7 @@ private:
     std::string message_;
     Hotkey hotkey_remap_ = Hotkey::Count;
     bool shortcuts_enabled_ = true;
+    bool ff_latched_ = false;
     Chord capture_;  // controller buttons held while rebinding a shortcut
     // Controller buttons that just fired a shortcut; kept away from the game until released.
     mutable std::vector<int> suppressed_;

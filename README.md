@@ -34,6 +34,7 @@ Get the latest version from the [Releases page](https://github.com/sweatyeggs69/
 - **One settings menu (F1)** for display (scaling, screen effects) and controls.
 - **Controllers and remapping** for keyboard and gamepads.
 - **Save states**: ten slots with thumbnails, quick save/load (Slot 1 by default) and optional auto-load.
+- **Fast forward and rewind**: hold Tab to speed up (2x or 4x), hold ` to rewind the last 10 seconds. Both rebindable in F1 > Controls; rewind is off in RetroAchievements hardcore mode.
 - **Cheats** (F1 > Cheats): infinite HP and BP for both brothers, and max coins. Off in RetroAchievements hardcore mode.
 - **Import saves** from RetroArch, mGBA, VBA-M and others.
 - **RetroAchievements**, optional.
