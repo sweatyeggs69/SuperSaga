@@ -8,7 +8,6 @@
 #include <system_error>
 
 #include "app/fsutil.h"
-#include "app/i18n.h"
 #include "app/save_import.h"
 #include "gba/gba.h"
 
@@ -23,8 +22,6 @@
 namespace supersaga::states {
 namespace fs = std::filesystem;
 using Bytes = std::vector<std::uint8_t>;
-using i18n::tr;
-using i18n::trf;
 
 namespace {
 
@@ -122,19 +119,19 @@ struct Parsed {
 // Parses a .ssst. With want_state false the (large) state block is not decompressed.
 bool parse(const Bytes& file, Parsed& out, bool want_state, std::string* error) {
     auto fail = [&](const char* why) { if (error) *error = why; return false; };
-    if (file.size() < 12 || std::memcmp(file.data(), kMagic, 8) != 0) return fail(tr("Not a SuperSaga save state file."));
+    if (file.size() < 12 || std::memcmp(file.data(), kMagic, 8) != 0) return fail("Not a SuperSaga save state file.");
     Cursor c{file, 8};
     std::uint32_t version = c.u32();
-    if (version != kFileVersion) return fail(tr("This save state file is from a different version of SuperSaga."));
+    if (version != kFileVersion) return fail("This save state file is from a different version of SuperSaga.");
     out.sha1 = c.str(64);
     out.build = c.str(64);
     out.saved_at = std::int64_t(c.u64());
     out.playtime = c.u64();
     out.label = c.str(256);
-    if (!c.ok) return fail(tr("The save state file is damaged."));
+    if (!c.ok) return fail("The save state file is damaged.");
     if (!get_block(c, out.thumb_raw, kW * kH * 2) || out.thumb_raw.size() != size_t(kW * kH * 2))
-        return fail(tr("The save state file is damaged."));
-    if (want_state && !get_block(c, out.state_raw, 8u << 20)) return fail(tr("The save state file is damaged."));
+        return fail("The save state file is damaged.");
+    if (want_state && !get_block(c, out.state_raw, 8u << 20)) return fail("The save state file is damaged.");
     return true;
 }
 
@@ -248,7 +245,7 @@ bool write_png(const fs::path& path, const std::uint16_t* px) {
 
 }  // namespace
 
-std::string slot_name(int slot) { return trf("Slot {0}", slot); }
+std::string slot_name(int slot) { return "Slot " + std::to_string(slot); }
 
 std::string format_playtime(std::uint64_t frames) {
     std::uint64_t secs = frames * 280896ull / 16777216ull;
@@ -322,7 +319,7 @@ const SlotInfo& Store::info(int slot) {
             Parsed p;
             std::string err;
             if (!parse(data, p, false, &err)) { i.error = err; continue; }
-            if (p.sha1 != sha1_) { i.error = tr("Made with a different ROM."); continue; }
+            if (p.sha1 != sha1_) { i.error = "Made with a different ROM."; continue; }
             i.saved_at = std::time_t(p.saved_at);
             i.playtime_frames = p.playtime;
             i.label = p.label;
@@ -350,7 +347,7 @@ bool Store::save(int slot, const gba::Gba& g, std::string* error, const std::str
         fs::copy_file(f, bak, fs::copy_options::overwrite_existing, ec);
     }
     if (!write_file_atomic(f, data)) {
-        if (error) *error = trf("Could not write {0}", f.string());
+        if (error) *error = "Could not write " + f.string();
         return false;
     }
     fs::path png = f;
@@ -363,13 +360,13 @@ bool Store::save(int slot, const gba::Gba& g, std::string* error, const std::str
 bool Store::load(int slot, gba::Gba& g, std::string* error) {
     Bytes data;
     if (!read_file(file(slot), data)) {
-        if (error) *error = trf("{0} is empty.", slot_name(slot));
+        if (error) *error = slot_name(slot) + " is empty.";
         return false;
     }
     Parsed p;
     if (!parse(data, p, true, error)) return false;
     if (p.sha1 != sha1_) {
-        if (error) *error = tr("That save state was made with a different ROM.");
+        if (error) *error = "That save state was made with a different ROM.";
         return false;
     }
     Bytes before = g.save_state();
@@ -388,7 +385,7 @@ bool Store::load(int slot, gba::Gba& g, std::string* error) {
 
 bool Store::undo_load(gba::Gba& g, std::string* error) {
     if (!undo_) {
-        if (error) *error = tr("There is nothing to undo.");
+        if (error) *error = "There is nothing to undo.";
         return false;
     }
     if (!g.load_state(*undo_, error)) return false;
@@ -403,7 +400,7 @@ bool Store::remove(int slot, std::string* error) {
         f.replace_extension(ext);
         if (!fs::exists(f, ec)) continue;
         if (!move_to_trash(f)) {
-            if (error) *error = trf("Could not move {0} to the Trash.", f.string());
+            if (error) *error = "Could not move " + f.string() + " to the Trash.";
             return false;
         }
     }
@@ -416,7 +413,7 @@ bool Store::rename(int slot, const std::string& label, std::string* error) {
     Parsed p;
     if (!read_file(file(slot), data) || !parse(data, p, false, error)) return false;
     if (!write_file_atomic(file(slot), relabel(data, label))) {
-        if (error) *error = trf("Could not write {0}", file(slot).string());
+        if (error) *error = "Could not write " + file(slot).string();
         return false;
     }
     refresh();
@@ -432,7 +429,7 @@ bool Store::export_slot(int slot, const fs::path& to, std::string* error) {
     fs::path out = to;
     if (out.extension() != ".ssst") out += ".ssst";
     if (!write_file_atomic(out, data)) {
-        if (error) *error = trf("Could not write {0}", out.string());
+        if (error) *error = "Could not write " + out.string();
         return false;
     }
     return true;
@@ -441,13 +438,13 @@ bool Store::export_slot(int slot, const fs::path& to, std::string* error) {
 bool Store::import_into(int slot, const fs::path& from, std::string* error) {
     Bytes data;
     if (!read_file(from, data)) {
-        if (error) *error = trf("Could not read {0}", from.string());
+        if (error) *error = "Could not read " + from.string();
         return false;
     }
     Parsed p;
     if (!parse(data, p, true, error)) return false;
     if (p.sha1 != sha1_) {
-        if (error) *error = tr("That save state was made with a different ROM.");
+        if (error) *error = "That save state was made with a different ROM.";
         return false;
     }
     // Make sure this build can actually load it before replacing the slot.
@@ -459,7 +456,7 @@ bool Store::import_into(int slot, const fs::path& from, std::string* error) {
         fs::copy_file(f, bak, fs::copy_options::overwrite_existing, ec);
     }
     if (!write_file_atomic(f, data)) {
-        if (error) *error = trf("Could not write {0}", f.string());
+        if (error) *error = "Could not write " + f.string();
         return false;
     }
     fs::path png = f;

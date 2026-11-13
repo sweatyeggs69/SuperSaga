@@ -77,9 +77,6 @@ bool checkbox(const char* label, bool* value);
 // input) that returns true when clicked or activated. width 0 fills the column. The cell is the
 // last item, so callers can check IsItemFocused / IsItemClicked(right) after it.
 bool binding_cell(const char* id, const char* text, bool waiting, float width = 0.0f);
-// Small text-only button (no background or border), centered on the current line: muted text
-// that brightens on hover, with the focus ring for keyboard and controller.
-bool text_button(const char* label, ImFont* font = nullptr, float x = -1.0f);
 // Text centered horizontally in the current window.
 void centered_text(const char* text, ImFont* font = nullptr, ImVec4 color = ImVec4(0, 0, 0, 0));
 

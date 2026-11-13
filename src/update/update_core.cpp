@@ -1,7 +1,5 @@
 #include "update/update_core.h"
 
-#include "app/i18n.h"  // N_() marks the messages the settings page translates
-
 #include <algorithm>
 #include <cctype>
 #include <cstring>
@@ -257,7 +255,7 @@ const Asset* Release::find(const std::string& n) const {
 std::optional<Release> parse_release_json(const std::string& json, std::string* error) {
     Json root;
     if (!JsonParser(json).parse(root) || root.type != Json::Object) {
-        if (error) *error = N_("The update server sent a reply SuperSaga couldn't read.");
+        if (error) *error = "The update server sent a reply SuperSaga couldn't read.";
         return std::nullopt;
     }
     Release r;
@@ -269,8 +267,8 @@ std::optional<Release> parse_release_json(const std::string& json, std::string* 
     r.prerelease = root.boolean("prerelease");
     if (r.tag.empty()) {
         std::string msg = root.str("message");  // e.g. {"message": "Not Found"} when there's no release yet
-        if (error) *error = msg == "Not Found" ? N_("No releases have been published yet.")
-                            : msg.empty()      ? N_("The update server's reply had no version in it.")
+        if (error) *error = msg == "Not Found" ? "No releases have been published yet."
+                            : msg.empty()      ? "The update server's reply had no version in it."
                                                : "The update server said: " + msg;
         return std::nullopt;
     }
@@ -411,30 +409,30 @@ bool extract_zip(const fs::path& zip, const fs::path& dest, std::string* error) 
     std::vector<std::uint8_t> b;
     {
         std::ifstream f(zip, std::ios::binary);
-        if (!f) return fail(N_("Couldn't open the downloaded update."));
+        if (!f) return fail("Couldn't open the downloaded update.");
         b.assign(std::istreambuf_iterator<char>(f), std::istreambuf_iterator<char>());
     }
-    if (b.size() < 22) return fail(N_("The downloaded update is not a valid zip file."));
+    if (b.size() < 22) return fail("The downloaded update is not a valid zip file.");
     size_t eocd = std::string::npos;
     for (size_t i = b.size() - 22 + 1; i-- > 0 && b.size() - i <= 22 + 65535;)
         if (rd32(b, i) == 0x06054b50u) { eocd = i; break; }
-    if (eocd == std::string::npos) return fail(N_("The downloaded update is not a valid zip file."));
+    if (eocd == std::string::npos) return fail("The downloaded update is not a valid zip file.");
     size_t count = rd16(b, eocd + 10);
     size_t cd = rd32(b, eocd + 16);
     std::error_code ec;
     fs::create_directories(dest, ec);
     if (ec) return fail("Couldn't create a folder for the update: " + ec.message());
     for (size_t k = 0; k < count; ++k) {
-        if (cd + 46 > b.size() || rd32(b, cd) != 0x02014b50u) return fail(N_("The update's zip file is damaged."));
+        if (cd + 46 > b.size() || rd32(b, cd) != 0x02014b50u) return fail("The update's zip file is damaged.");
         std::uint32_t method = rd16(b, cd + 10), crc = rd32(b, cd + 16);
         size_t csize = rd32(b, cd + 20), usize = rd32(b, cd + 24);
         size_t nlen = rd16(b, cd + 28), xlen = rd16(b, cd + 30), clen = rd16(b, cd + 32);
         size_t local = rd32(b, cd + 42);
-        if (cd + 46 + nlen > b.size()) return fail(N_("The update's zip file is damaged."));
+        if (cd + 46 + nlen > b.size()) return fail("The update's zip file is damaged.");
         std::string name(reinterpret_cast<const char*>(&b[cd + 46]), nlen);
         cd += 46 + nlen + xlen + clen;
         if (csize == 0xFFFFFFFFu || usize == 0xFFFFFFFFu || local == 0xFFFFFFFFu)
-            return fail(N_("The update's zip file uses a format SuperSaga doesn't support (zip64)."));
+            return fail("The update's zip file uses a format SuperSaga doesn't support (zip64).");
         bool is_dir = !name.empty() && (name.back() == '/' || name.back() == '\\');
         fs::path rel = safe_relative(name);
         if (rel.empty()) {
@@ -446,18 +444,18 @@ bool extract_zip(const fs::path& zip, const fs::path& dest, std::string* error) 
             fs::create_directories(out, ec);
             continue;
         }
-        if (local + 30 > b.size() || rd32(b, local) != 0x04034b50u) return fail(N_("The update's zip file is damaged."));
+        if (local + 30 > b.size() || rd32(b, local) != 0x04034b50u) return fail("The update's zip file is damaged.");
         size_t data = local + 30 + rd16(b, local + 26) + rd16(b, local + 28);
-        if (data + csize > b.size()) return fail(N_("The update's zip file is cut short."));
+        if (data + csize > b.size()) return fail("The update's zip file is cut short.");
         std::vector<std::uint8_t> bytes;
         if (method == 0) {
-            if (csize != usize) return fail(N_("The update's zip file is damaged."));
+            if (csize != usize) return fail("The update's zip file is damaged.");
             bytes.assign(b.begin() + std::ptrdiff_t(data), b.begin() + std::ptrdiff_t(data + csize));
         } else if (method == 8) {
 #if SUPERSAGA_HAVE_ZLIB
             bytes.resize(usize);
             z_stream z{};
-            if (inflateInit2(&z, -MAX_WBITS) != Z_OK) return fail(N_("Couldn't unpack the update."));
+            if (inflateInit2(&z, -MAX_WBITS) != Z_OK) return fail("Couldn't unpack the update.");
             z.next_in = const_cast<Bytef*>(&b[data]);
             z.avail_in = uInt(csize);
             z.next_out = bytes.empty() ? nullptr : bytes.data();
@@ -467,10 +465,10 @@ bool extract_zip(const fs::path& zip, const fs::path& dest, std::string* error) 
             inflateEnd(&z);
             if (rc != Z_STREAM_END || produced != usize) return fail("Couldn't unpack " + name + " from the update.");
 #else
-            return fail(N_("This build of SuperSaga can't unpack zip updates."));
+            return fail("This build of SuperSaga can't unpack zip updates.");
 #endif
         } else {
-            return fail(N_("The update's zip file uses an unsupported compression method."));
+            return fail("The update's zip file uses an unsupported compression method.");
         }
         if (crc32_of(bytes.data(), bytes.size()) != crc) return fail("The update's zip file is damaged (" + name + ").");
         fs::create_directories(out.parent_path(), ec);

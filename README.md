@@ -39,9 +39,6 @@ Get the latest version from the [Releases page](https://github.com/sweatyeggs69/
 - **RetroAchievements**, optional.
 - **Automatic updates** from this repository's releases, with your OK, without touching your saves.
 - **Optional BIOS** with the original boot animation (not required).
-- **Launcher and menus in six languages**: English, French, German, Spanish, Italian and Brazilian
-  Portuguese. SuperSaga follows your system language; change it with the language button at the
-  bottom of the launcher. The game's own text stays as it is on your cartridge.
 
 ## FAQ
 
@@ -61,11 +58,6 @@ In your user folder, never inside the app: `~/Library/Application Support/SuperS
 
 Bug reports and pull requests are welcome. Keep game content out of the repository: no ROMs, BIOS
 files, saves, save states, extracted assets or screenshots of the game.
-
-Translations live in `assets/lang/` as gettext `.po` files (Poedit or any text editor works). After
-changing text in the code, run `python3 tools/i18n.py update` to refresh them, translate the new
-entries, and check with `python3 tools/i18n.py check`. The menu font covers Latin-1, so languages
-such as Japanese or Russian also need a font added.
 
 ## License
 
