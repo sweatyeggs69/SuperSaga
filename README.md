@@ -60,6 +60,10 @@ Or get the latest version for your system from the [Releases page](https://githu
 
 Everything except F1, Esc and F11 can be rebound in F1 > Controls.
 
+Button names follow your controller's layout (Xbox, PlayStation or Nintendo). Connected controllers
+are printed to the terminal; if SDL doesn't know yours, add its layout to a `gamecontrollerdb.txt` in the
+settings folder.
+
 ## Features
 
 - **Settings menu (F1)** for display (scaling, 16:10 and 16:9 widescreen, screen effects), controls and more.
