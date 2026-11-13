@@ -178,6 +178,30 @@ void handle_event(const SDL_Event& e, bool consumed) {
 
 void new_frame() {
     if (!ImGui::GetCurrentContext()) return;
+    // Releases that happened while the window was in the background send no event (SDL holds
+    // controller events back then), so let go of anything the controller no longer holds.
+    bool changed = false;
+    for (auto& p : g_pads) {
+        SDL_Gamepad* gp = SDL_GetGamepadFromID(p.id);
+        if (!gp) continue;
+        for (int b = 0; b < SDL_GAMEPAD_BUTTON_COUNT && b < 64; ++b) {
+            const std::uint64_t bit = std::uint64_t(1) << b;
+            if (((p.held | p.suppressed) & bit) && !SDL_GetGamepadButton(gp, SDL_GamepadButton(b))) {
+                changed |= (p.held & bit) != 0;
+                p.held &= ~bit;
+                p.suppressed &= ~bit;
+            }
+        }
+        for (int a = 0; a < SDL_GAMEPAD_AXIS_COUNT; ++a) {
+            const int v = SDL_GetGamepadAxis(gp, SDL_GamepadAxis(a));
+            if (v > -kStickDeadZone && v < kStickDeadZone && (p.axes[a] != 0 || p.axis_suppressed[a])) {
+                changed |= p.axes[a] != 0;
+                p.axes[a] = 0;
+                p.axis_suppressed[a] = false;
+            }
+        }
+    }
+    if (changed) push();
     ImGuiIO& io = ImGui::GetIO();
     if ((io.ConfigFlags & ImGuiConfigFlags_NavEnableGamepad) && (!g_pads.empty() || SDL_HasGamepad()))
         io.BackendFlags |= ImGuiBackendFlags_HasGamepad;

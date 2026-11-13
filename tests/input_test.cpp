@@ -377,6 +377,32 @@ void menu_pad_events() {
     CHECK(ImGui::IsKeyDown(ImGuiKey_GamepadLStickDown));
     handle_event(pad_axis(1, SDL_GAMEPAD_AXIS_LEFTY, 0), false);
     frame();
+
+    // The reported bug, end to end: a cell waits for a controller button and the player presses
+    // the west button (Nintendo Y). It binds, and the menu never sees it (west clears a binding).
+    {
+        std::map<std::string, std::string> store;
+        supersaga::SettingsIO sio;
+        sio.get = [&](const std::string& k, const std::string& fb) {
+            auto it = store.find(k);
+            return it == store.end() ? fb : it->second;
+        };
+        sio.set = [&](const std::string& k, const std::string& v) { store[k] = v; };
+        sio.save = [] {};
+        Manager m(sio);
+        m.start_remap(Button::B, Source::Controller);
+        const SDL_Event down = pad_button(3, SDL_GAMEPAD_BUTTON_WEST, true);
+        handle_event(down, m.handle_event(down));
+        frame();
+        CHECK(!m.remapping());
+        CHECK(m.describe(Button::B, Source::Controller) == "X Button");
+        CHECK(!ImGui::IsKeyDown(ImGuiKey_GamepadFaceLeft));
+        const SDL_Event up = pad_button(3, SDL_GAMEPAD_BUTTON_WEST, false);
+        handle_event(up, m.handle_event(up));
+        frame();
+        CHECK(!ImGui::IsKeyDown(ImGuiKey_GamepadFaceLeft));
+        CHECK(m.describe(Button::B, Source::Controller) == "X Button");
+    }
     ImGui::DestroyContext();
 }
 }  // namespace

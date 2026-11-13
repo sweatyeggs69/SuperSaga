@@ -459,6 +459,17 @@ bool App::route_event(const SDL_Event& e) {
     if (e.type == SDL_EVENT_QUIT) { running_ = false; return false; }
     if (e.type == SDL_EVENT_WINDOW_DISPLAY_CHANGED || e.type == SDL_EVENT_DISPLAY_CURRENT_MODE_CHANGED)
         update_refresh_rate();
+    // Controller hotplug goes to both input managers (the game's and the settings menu's), so a
+    // controller connected while the menu is open still works in game, and the other way round.
+    if (e.type == SDL_EVENT_GAMEPAD_ADDED || e.type == SDL_EVENT_GAMEPAD_REMOVED ||
+        e.type == SDL_EVENT_GAMEPAD_REMAPPED || e.type == SDL_EVENT_JOYSTICK_ADDED ||
+        e.type == SDL_EVENT_JOYSTICK_REMOVED) {
+        controls_->handle_event(e);
+        options_panel_handle_event(e);
+        if (options_menu_open()) controls_->take_message();  // no stale notice after the menu closes
+        ImGui_ImplSDL3_ProcessEvent(&e);
+        return false;
+    }
     bool key = e.type == SDL_EVENT_KEY_DOWN && !e.key.repeat;
     if (key && e.key.key == SDLK_F11) {
         bool fs_on = !(SDL_GetWindowFlags(window_) & SDL_WINDOW_FULLSCREEN);
