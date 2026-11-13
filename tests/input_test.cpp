@@ -10,6 +10,9 @@
 
 #include "app/states.h"
 #include "options/input.h"
+#include "options/menu_pad.h"
+
+#include <imgui.h>
 
 using namespace supersaga::input;
 
@@ -265,6 +268,143 @@ void raw_joystick(Manager& m, SDL_Joystick* raw) {
     m.cancel_remap();
     m.reset_to_defaults();
 }
+
+// Button names follow the connected controller's layout. Bindings are stored by position.
+void labels_for(Uint16 vendor, Uint16 product, const char* south, const char* west, const char* lt) {
+    SDL_VirtualJoystickDesc desc;
+    SDL_INIT_INTERFACE(&desc);
+    desc.type = SDL_JOYSTICK_TYPE_GAMEPAD;
+    desc.naxes = SDL_GAMEPAD_AXIS_COUNT;
+    desc.nbuttons = SDL_GAMEPAD_BUTTON_COUNT;
+    desc.vendor_id = vendor;
+    desc.product_id = product;
+    desc.name = "SuperSaga label pad";
+    const SDL_JoystickID id = SDL_AttachVirtualJoystick(&desc);
+    CHECK(id != 0);
+    settle();
+    CHECK(display_name({Binding::Kind::PadButton, SDL_GAMEPAD_BUTTON_SOUTH, 0}) == south);
+    CHECK(display_name({Binding::Kind::PadButton, SDL_GAMEPAD_BUTTON_WEST, 0}) == west);
+    CHECK(display_name({Binding::Kind::PadAxis, SDL_GAMEPAD_AXIS_LEFT_TRIGGER, 1}) == lt);
+    if (id) SDL_DetachVirtualJoystick(id);
+    settle();
+}
+
+void labels() {
+    // No controller connected: Xbox names.
+    CHECK(display_name({Binding::Kind::PadButton, SDL_GAMEPAD_BUTTON_SOUTH, 0}) == "A Button");
+    labels_for(0x057e, 0x2009, "B Button", "Y Button", "ZL Button");  // Switch Pro Controller
+    labels_for(0x054c, 0x09cc, "Cross", "Square", "L2");               // DualShock 4
+    labels_for(0x045e, 0x02ea, "A Button", "X Button", "Left Trigger");  // Xbox One S
+}
+
+// Menus get controller input from events; a press the app consumed (binding capture) must not
+// reach them, nor its release, nor a stick push that was captured.
+SDL_Event pad_button(SDL_JoystickID which, SDL_GamepadButton b, bool down) {
+    SDL_Event e{};
+    e.type = down ? SDL_EVENT_GAMEPAD_BUTTON_DOWN : SDL_EVENT_GAMEPAD_BUTTON_UP;
+    e.gbutton.which = which;
+    e.gbutton.button = Uint8(b);
+    e.gbutton.down = down;
+    return e;
+}
+SDL_Event pad_axis(SDL_JoystickID which, SDL_GamepadAxis a, Sint16 v) {
+    SDL_Event e{};
+    e.type = SDL_EVENT_GAMEPAD_AXIS_MOTION;
+    e.gaxis.which = which;
+    e.gaxis.axis = Uint8(a);
+    e.gaxis.value = v;
+    return e;
+}
+void frame() {
+    ImGui::GetIO().DeltaTime = 1.0f / 60.0f;
+    supersaga::menu_pad::new_frame();
+    ImGui::NewFrame();
+    ImGui::EndFrame();
+}
+
+void menu_pad_events() {
+    using supersaga::menu_pad::handle_event;
+    ImGui::CreateContext();
+    ImGuiIO& io = ImGui::GetIO();
+    io.IniFilename = nullptr;
+    io.DisplaySize = ImVec2(640, 480);
+    io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+    unsigned char* px;
+    int w, h;
+    io.Fonts->GetTexDataAsRGBA32(&px, &w, &h);
+    frame();
+
+    // Captured press (Nintendo Y = west, the clear button): never seen, nor its release.
+    handle_event(pad_button(1, SDL_GAMEPAD_BUTTON_WEST, true), true);
+    frame();
+    CHECK(!ImGui::IsKeyDown(ImGuiKey_GamepadFaceLeft));
+    handle_event(pad_button(1, SDL_GAMEPAD_BUTTON_WEST, false), false);
+    frame();
+    CHECK(!ImGui::IsKeyDown(ImGuiKey_GamepadFaceLeft));
+    // The next press of it is a normal one again.
+    handle_event(pad_button(1, SDL_GAMEPAD_BUTTON_WEST, true), false);
+    frame();
+    CHECK(ImGui::IsKeyDown(ImGuiKey_GamepadFaceLeft));
+    handle_event(pad_button(1, SDL_GAMEPAD_BUTTON_WEST, false), false);
+    frame();
+    CHECK(!ImGui::IsKeyDown(ImGuiKey_GamepadFaceLeft));
+
+    // Two controllers: both are heard, and one letting go doesn't release the other's press.
+    handle_event(pad_button(1, SDL_GAMEPAD_BUTTON_SOUTH, true), false);
+    handle_event(pad_button(2, SDL_GAMEPAD_BUTTON_SOUTH, true), false);
+    handle_event(pad_button(2, SDL_GAMEPAD_BUTTON_SOUTH, false), false);
+    frame();
+    frame();
+    CHECK(ImGui::IsKeyDown(ImGuiKey_GamepadFaceDown));
+    handle_event(pad_button(1, SDL_GAMEPAD_BUTTON_SOUTH, false), false);
+    frame();
+    CHECK(!ImGui::IsKeyDown(ImGuiKey_GamepadFaceDown));
+    handle_event(pad_button(2, SDL_GAMEPAD_BUTTON_EAST, true), false);
+    frame();
+    CHECK(ImGui::IsKeyDown(ImGuiKey_GamepadFaceRight));
+    handle_event(pad_button(2, SDL_GAMEPAD_BUTTON_EAST, false), false);
+    frame();
+
+    // A captured stick push stays away from the menus until the stick is back at rest.
+    handle_event(pad_axis(1, SDL_GAMEPAD_AXIS_LEFTY, 30000), true);
+    handle_event(pad_axis(1, SDL_GAMEPAD_AXIS_LEFTY, 31000), false);
+    frame();
+    CHECK(!ImGui::IsKeyDown(ImGuiKey_GamepadLStickDown));
+    handle_event(pad_axis(1, SDL_GAMEPAD_AXIS_LEFTY, 0), false);
+    handle_event(pad_axis(1, SDL_GAMEPAD_AXIS_LEFTY, 30000), false);
+    frame();
+    frame();
+    CHECK(ImGui::IsKeyDown(ImGuiKey_GamepadLStickDown));
+    handle_event(pad_axis(1, SDL_GAMEPAD_AXIS_LEFTY, 0), false);
+    frame();
+
+    // The reported bug, end to end: a cell waits for a controller button and the player presses
+    // the west button (Nintendo Y). It binds, and the menu never sees it (west clears a binding).
+    {
+        std::map<std::string, std::string> store;
+        supersaga::SettingsIO sio;
+        sio.get = [&](const std::string& k, const std::string& fb) {
+            auto it = store.find(k);
+            return it == store.end() ? fb : it->second;
+        };
+        sio.set = [&](const std::string& k, const std::string& v) { store[k] = v; };
+        sio.save = [] {};
+        Manager m(sio);
+        m.start_remap(Button::B, Source::Controller);
+        const SDL_Event down = pad_button(3, SDL_GAMEPAD_BUTTON_WEST, true);
+        handle_event(down, m.handle_event(down));
+        frame();
+        CHECK(!m.remapping());
+        CHECK(m.describe(Button::B, Source::Controller) == "X Button");
+        CHECK(!ImGui::IsKeyDown(ImGuiKey_GamepadFaceLeft));
+        const SDL_Event up = pad_button(3, SDL_GAMEPAD_BUTTON_WEST, false);
+        handle_event(up, m.handle_event(up));
+        frame();
+        CHECK(!ImGui::IsKeyDown(ImGuiKey_GamepadFaceLeft));
+        CHECK(m.describe(Button::B, Source::Controller) == "X Button");
+    }
+    ImGui::DestroyContext();
+}
 }  // namespace
 
 int main() {
@@ -331,6 +471,9 @@ int main() {
     }
     SDL_CloseJoystick(g_joy);
     SDL_DetachVirtualJoystick(id);
+    settle();
+    labels();
+    menu_pad_events();
     SDL_Quit();
     if (failures) std::fprintf(stderr, "%d check(s) failed\n", failures);
     else std::printf("input: all checks passed\n");

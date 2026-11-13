@@ -32,6 +32,7 @@
 #include "game.h"
 #include "gba/gba.h"
 #include "options/input.h"
+#include "options/menu_pad.h"
 #include "options/options_panel.h"
 #include "options/display.h"
 #include "options/presenter.h"
@@ -88,6 +89,7 @@ private:
     void start_attract();
     void start_game();
     void handle_event(const SDL_Event& e);
+    bool route_event(const SDL_Event& e);  // true when consumed by binding capture or a shortcut
     void update_emulation();
     void draw_ui();
     void draw_first_run();
@@ -235,11 +237,21 @@ bool App::init_window() {
     io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard | ImGuiConfigFlags_NavEnableGamepad;
     ImGui_ImplSDL3_InitForSDLRenderer(window_, renderer_);
     ImGui_ImplSDLRenderer3_Init(renderer_);
+    menu_pad::init();  // controllers reach the menus through handle_event, not the backend's polling
     theme::apply(SDL_GetWindowPixelDensity(window_));
     set_options_menu_fonts(theme::font_button(), theme::font_small());
     if (config_.get_string("display.fullscreen", "0") == "1") SDL_SetWindowFullscreen(window_, true);
     toast::set_renderer(renderer_);
     presenter_ = std::make_unique<Presenter>(renderer_, settings_io(config_));
+    // Extra controller layouts (SDL's gamecontrollerdb.txt format) for controllers SDL doesn't know.
+    {
+        const fs::path db = config_.pref_dir() / "gamecontrollerdb.txt";
+        std::error_code ec;
+        if (fs::exists(db, ec)) {
+            const int n = SDL_AddGamepadMappingsFromFile(path_utf8(db).c_str());
+            std::fprintf(stderr, "supersaga: %s: %d controller layout(s) added\n", path_utf8(db).c_str(), n < 0 ? 0 : n);
+        }
+    }
     controls_ = std::make_unique<input::Manager>(settings_io(config_));
     achievements_ = std::make_unique<Achievements>(config_, renderer_);
     updater_ = std::make_unique<update::Updater>(SUPERSAGA_VERSION);
@@ -439,34 +451,51 @@ void App::return_to_launcher() {
 }
 
 void App::handle_event(const SDL_Event& e) {
-    if (e.type == SDL_EVENT_QUIT) { running_ = false; return; }
+    // Controllers reach the menus after the app has had them, minus what it consumed.
+    menu_pad::handle_event(e, route_event(e));
+}
+
+bool App::route_event(const SDL_Event& e) {
+    if (e.type == SDL_EVENT_QUIT) { running_ = false; return false; }
     if (e.type == SDL_EVENT_WINDOW_DISPLAY_CHANGED || e.type == SDL_EVENT_DISPLAY_CURRENT_MODE_CHANGED)
         update_refresh_rate();
+    // Controller hotplug goes to both input managers (the game's and the settings menu's), so a
+    // controller connected while the menu is open still works in game, and the other way round.
+    if (e.type == SDL_EVENT_GAMEPAD_ADDED || e.type == SDL_EVENT_GAMEPAD_REMOVED ||
+        e.type == SDL_EVENT_GAMEPAD_REMAPPED || e.type == SDL_EVENT_JOYSTICK_ADDED ||
+        e.type == SDL_EVENT_JOYSTICK_REMOVED) {
+        controls_->handle_event(e);
+        options_panel_handle_event(e);
+        if (options_menu_open()) controls_->take_message();  // no stale notice after the menu closes
+        ImGui_ImplSDL3_ProcessEvent(&e);
+        return false;
+    }
     bool key = e.type == SDL_EVENT_KEY_DOWN && !e.key.repeat;
     if (key && e.key.key == SDLK_F11) {
         bool fs_on = !(SDL_GetWindowFlags(window_) & SDL_WINDOW_FULLSCREEN);
         SDL_SetWindowFullscreen(window_, fs_on);
         config_.set_string("display.fullscreen", fs_on ? "1" : "0");  // keep the menu checkbox in sync
-        return;
+        return false;
     }
     if (options_menu_open()) {
         // The menu owns input: rebinding captures first, then ImGui. Nothing reaches the game.
-        if (options_panel_handle_event(e)) return;
-        if (key && (e.key.key == SDLK_F1 || e.key.key == SDLK_ESCAPE)) { set_menu_open(false); return; }
+        if (options_panel_handle_event(e)) return true;
+        if (key && (e.key.key == SDLK_F1 || e.key.key == SDLK_ESCAPE)) { set_menu_open(false); return false; }
         ImGui_ImplSDL3_ProcessEvent(&e);
-        return;
+        return false;
     }
-    if (key && e.key.key == SDLK_F1 && screen_ != Screen::FirstRun) { set_menu_open(true); return; }
+    if (key && e.key.key == SDLK_F1 && screen_ != Screen::FirstRun) { set_menu_open(true); return false; }
     if (screen_ == Screen::Game) {
-        if (controls_->handle_event(e)) return;  // gamepad hotplug / remap capture
+        if (controls_->handle_event(e)) return true;  // gamepad hotplug / remap capture
         if (key && e.key.key == SDLK_ESCAPE) {
-            if (opt_.test_pattern && !rom_.ok) { running_ = false; return; }
+            if (opt_.test_pattern && !rom_.ok) { running_ = false; return false; }
             set_menu_open(true);
         }
-        return;
+        return false;
     }
-    controls_->handle_event(e);  // gamepad hotplug
+    const bool consumed = controls_->handle_event(e);  // gamepad hotplug, remap capture
     ImGui_ImplSDL3_ProcessEvent(&e);
+    return consumed;
 }
 
 void App::update_emulation() {
@@ -1689,6 +1718,7 @@ int App::run() {
             if (toast) {  // small save-state notice with the slot's thumbnail
                 ImGui_ImplSDLRenderer3_NewFrame();
                 ImGui_ImplSDL3_NewFrame();
+                menu_pad::new_frame();
                 ImGui::NewFrame();
                 toast::draw();
                 ImGui::Render();
@@ -1704,6 +1734,7 @@ int App::run() {
         } else {
             ImGui_ImplSDLRenderer3_NewFrame();
             ImGui_ImplSDL3_NewFrame();
+            menu_pad::new_frame();
             ImGui::NewFrame();
             draw_ui();
             ImGui::Render();

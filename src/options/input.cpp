@@ -113,6 +113,56 @@ std::string to_string(const Binding& b) {
     return "?";
 }
 
+namespace {
+// Controller family for button names: the first connected controller's, or Xbox names when none
+// is connected. Bindings are stored by position (south, east, ...), so the same binding reads
+// "A Button" on an Xbox controller, "B Button" on a Nintendo one and "Cross" on a PlayStation one.
+enum class PadFamily { Xbox, Nintendo, PlayStation };
+
+SDL_GamepadType current_pad_type() {
+    SDL_GamepadType type = SDL_GAMEPAD_TYPE_UNKNOWN;
+    int n = 0;
+    if (SDL_JoystickID* ids = SDL_GetGamepads(&n)) {
+        if (n > 0) type = SDL_GetGamepadTypeForID(ids[0]);
+        SDL_free(ids);
+    }
+    return type;
+}
+
+PadFamily pad_family(SDL_GamepadType type) {
+    switch (type) {
+        case SDL_GAMEPAD_TYPE_PS3:
+        case SDL_GAMEPAD_TYPE_PS4:
+        case SDL_GAMEPAD_TYPE_PS5: return PadFamily::PlayStation;
+        case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_PRO:
+        case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_JOYCON_LEFT:
+        case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_JOYCON_RIGHT:
+        case SDL_GAMEPAD_TYPE_NINTENDO_SWITCH_JOYCON_PAIR: return PadFamily::Nintendo;
+        default: return PadFamily::Xbox;
+    }
+}
+
+const char* face_button_name(SDL_GamepadType type, SDL_GamepadButton button) {
+    switch (SDL_GetGamepadButtonLabelForType(type == SDL_GAMEPAD_TYPE_UNKNOWN ? SDL_GAMEPAD_TYPE_XBOXONE : type, button)) {
+        case SDL_GAMEPAD_BUTTON_LABEL_A: return "A Button";
+        case SDL_GAMEPAD_BUTTON_LABEL_B: return "B Button";
+        case SDL_GAMEPAD_BUTTON_LABEL_X: return "X Button";
+        case SDL_GAMEPAD_BUTTON_LABEL_Y: return "Y Button";
+        case SDL_GAMEPAD_BUTTON_LABEL_CROSS: return "Cross";
+        case SDL_GAMEPAD_BUTTON_LABEL_CIRCLE: return "Circle";
+        case SDL_GAMEPAD_BUTTON_LABEL_SQUARE: return "Square";
+        case SDL_GAMEPAD_BUTTON_LABEL_TRIANGLE: return "Triangle";
+        default: break;
+    }
+    switch (button) {
+        case SDL_GAMEPAD_BUTTON_SOUTH: return "South Button";
+        case SDL_GAMEPAD_BUTTON_EAST: return "East Button";
+        case SDL_GAMEPAD_BUTTON_WEST: return "West Button";
+        default: return "North Button";
+    }
+}
+}  // namespace
+
 std::string display_name(const Binding& b) {
     switch (b.kind) {
         case Binding::Kind::Key: {
@@ -140,24 +190,27 @@ std::string display_name(const Binding& b) {
             const char* n = SDL_GetScancodeName(SDL_Scancode(b.code));
             return n && *n ? n : "Key " + std::to_string(b.code);
         }
-        case Binding::Kind::PadButton:
+        case Binding::Kind::PadButton: {
+            const SDL_GamepadType type = current_pad_type();
+            const PadFamily family = pad_family(type);
+            const bool nin = family == PadFamily::Nintendo, ps = family == PadFamily::PlayStation;
             switch (SDL_GamepadButton(b.code)) {
-                case SDL_GAMEPAD_BUTTON_SOUTH: return "A Button";
-                case SDL_GAMEPAD_BUTTON_EAST: return "B Button";
-                case SDL_GAMEPAD_BUTTON_WEST: return "X Button";
-                case SDL_GAMEPAD_BUTTON_NORTH: return "Y Button";
-                case SDL_GAMEPAD_BUTTON_BACK: return "Back Button";
-                case SDL_GAMEPAD_BUTTON_GUIDE: return "Home Button";
-                case SDL_GAMEPAD_BUTTON_START: return "Start Button";
+                case SDL_GAMEPAD_BUTTON_SOUTH:
+                case SDL_GAMEPAD_BUTTON_EAST:
+                case SDL_GAMEPAD_BUTTON_WEST:
+                case SDL_GAMEPAD_BUTTON_NORTH: return face_button_name(type, SDL_GamepadButton(b.code));
+                case SDL_GAMEPAD_BUTTON_BACK: return nin ? "Minus Button" : ps ? "Share Button" : "Back Button";
+                case SDL_GAMEPAD_BUTTON_GUIDE: return ps ? "PS Button" : "Home Button";
+                case SDL_GAMEPAD_BUTTON_START: return nin ? "Plus Button" : ps ? "Options Button" : "Start Button";
                 case SDL_GAMEPAD_BUTTON_LEFT_STICK: return "Left Stick Press";
                 case SDL_GAMEPAD_BUTTON_RIGHT_STICK: return "Right Stick Press";
-                case SDL_GAMEPAD_BUTTON_LEFT_SHOULDER: return "Left Bumper";
-                case SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER: return "Right Bumper";
+                case SDL_GAMEPAD_BUTTON_LEFT_SHOULDER: return nin ? "L Button" : ps ? "L1" : "Left Bumper";
+                case SDL_GAMEPAD_BUTTON_RIGHT_SHOULDER: return nin ? "R Button" : ps ? "R1" : "Right Bumper";
                 case SDL_GAMEPAD_BUTTON_DPAD_UP: return "Up D-Pad";
                 case SDL_GAMEPAD_BUTTON_DPAD_DOWN: return "Down D-Pad";
                 case SDL_GAMEPAD_BUTTON_DPAD_LEFT: return "Left D-Pad";
                 case SDL_GAMEPAD_BUTTON_DPAD_RIGHT: return "Right D-Pad";
-                case SDL_GAMEPAD_BUTTON_MISC1: return "Share Button";
+                case SDL_GAMEPAD_BUTTON_MISC1: return nin ? "Capture Button" : ps ? "Mic Button" : "Share Button";
                 case SDL_GAMEPAD_BUTTON_RIGHT_PADDLE1: return "Right Paddle 1";
                 case SDL_GAMEPAD_BUTTON_LEFT_PADDLE1: return "Left Paddle 1";
                 case SDL_GAMEPAD_BUTTON_RIGHT_PADDLE2: return "Right Paddle 2";
@@ -170,15 +223,19 @@ std::string display_name(const Binding& b) {
                 case SDL_GAMEPAD_BUTTON_MISC6: return "Extra Button 6";
                 default: return "Controller Button " + std::to_string(b.code);
             }
+        }
         case Binding::Kind::PadAxis: {
             const bool neg = b.dir < 0;
+            const PadFamily family = pad_family(current_pad_type());
             switch (SDL_GamepadAxis(b.code)) {
                 case SDL_GAMEPAD_AXIS_LEFTX: return neg ? "Left Stick Left" : "Left Stick Right";
                 case SDL_GAMEPAD_AXIS_LEFTY: return neg ? "Left Stick Up" : "Left Stick Down";
                 case SDL_GAMEPAD_AXIS_RIGHTX: return neg ? "Right Stick Left" : "Right Stick Right";
                 case SDL_GAMEPAD_AXIS_RIGHTY: return neg ? "Right Stick Up" : "Right Stick Down";
-                case SDL_GAMEPAD_AXIS_LEFT_TRIGGER: return "Left Trigger";
-                case SDL_GAMEPAD_AXIS_RIGHT_TRIGGER: return "Right Trigger";
+                case SDL_GAMEPAD_AXIS_LEFT_TRIGGER:
+                    return family == PadFamily::Nintendo ? "ZL Button" : family == PadFamily::PlayStation ? "L2" : "Left Trigger";
+                case SDL_GAMEPAD_AXIS_RIGHT_TRIGGER:
+                    return family == PadFamily::Nintendo ? "ZR Button" : family == PadFamily::PlayStation ? "R2" : "Right Trigger";
                 default: return "Controller Axis " + std::to_string(b.code) + (neg ? "-" : "+");
             }
         }
