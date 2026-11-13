@@ -352,23 +352,19 @@ void controls_tab(input::Manager& in, Config& config) {
                        "above Tab, or click the left stick) to rewind. Change the buttons under "
                        "Shortcuts below.");
     {
-        int speed = std::clamp(config.get_int("speed.fast_forward", 4), 2, 8);
-        if (ImGui::SliderInt("Fast forward speed", &speed, 2, 8, "%dx", ImGuiSliderFlags_AlwaysClamp))
-            config.set("speed.fast_forward", std::to_string(speed));
-        bool sound = config.get_bool("speed.fast_forward_sound", true);
+        const char* speeds[] = {"2x", "4x"};
+        int speed = config.get_int("speed.fast_forward", 2) >= 4 ? 1 : 0;
+        if (ImGui::Combo("Fast forward speed", &speed, speeds, 2))
+            config.set("speed.fast_forward", speed ? "4" : "2");
+        bool sound = config.get_bool("speed.fast_forward_sound", false);
         if (theme::toggle("Sound while fast forwarding", &sound)) config.set_bool("speed.fast_forward_sound", sound);
-        help_marker("The game's sound plays faster along with the game. Turn this off to fast "
-                    "forward in silence.");
+        help_marker("Off: fast forward is silent. On: the game's sound plays faster along "
+                    "with the game.");
         bool rewind = config.get_bool("rewind.enabled", true);
         if (theme::toggle("Rewind", &rewind)) config.set_bool("rewind.enabled", rewind);
-        help_marker("Keeps a short history of the game while you play so you can step back. "
-                    "Rewind is off in RetroAchievements hardcore mode, like save states and cheats.");
-        ImGui::BeginDisabled(!rewind);
-        int seconds = std::clamp(config.get_int("rewind.seconds", 30), 10, 120);
-        if (ImGui::SliderInt("Rewind length", &seconds, 10, 120, "%d seconds", ImGuiSliderFlags_AlwaysClamp))
-            config.set("rewind.seconds", std::to_string(seconds));
-        help_marker("How far back you can rewind. Rewinding plays at twice normal speed.");
-        ImGui::EndDisabled();
+        help_marker("Keeps the last 10 seconds of play so you can step back, at twice normal "
+                    "speed. Rewind is off in RetroAchievements hardcore mode, like save states and "
+                    "cheats.");
     }
 
     ImGui::Spacing();

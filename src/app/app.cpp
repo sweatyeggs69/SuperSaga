@@ -509,8 +509,7 @@ void App::update_emulation() {
         if (rewind_allowed()) {
             if (++rewind_tick_ >= 2) {
                 rewind_tick_ = 0;
-                const int seconds = std::clamp(config_.get_int("rewind.seconds", 30), 10, 120);
-                rewind_.set_limits(std::size_t(seconds) * 30, std::size_t(256) << 20);
+                rewind_.set_limits(10 * 30, std::size_t(64) << 20);  // the last 10 seconds
                 rewind_.push(game_->save_state());
             }
         } else if (!rewind_.empty()) {
@@ -527,7 +526,7 @@ void App::update_emulation() {
     if (pixels) SDL_UpdateTexture(frame_tex_, nullptr, pixels, kW * sizeof(std::uint16_t));
     // Safety cap (~200 ms queued, of game time); normal sync comes from update_audio_rate().
     if (audio_ && !audio_buf_.empty() && SDL_GetAudioStreamQueued(audio_) < gba::kAudioRate / 5 * 4 * ff_speed_) {
-        const bool ff_mute = ff_speed_ > 1 && !config_.get_bool("speed.fast_forward_sound", true);
+        const bool ff_mute = ff_speed_ > 1 && !config_.get_bool("speed.fast_forward_sound", false);
         SDL_SetAudioStreamGain(audio_, opt_.silent_audio || ff_mute ? 0.0f : screen_ == Screen::Game ? 1.0f : 0.35f);
         SDL_PutAudioStreamData(audio_, audio_buf_.data(), int(audio_buf_.size() * sizeof(std::int16_t)));
     }
@@ -1338,7 +1337,7 @@ void App::update_speed() {
 
     const bool ff = playing && !rewinding_ &&
                     (controls_->hotkey_held(input::Hotkey::FastForward) || controls_->fast_forward_latched());
-    const int speed = ff ? std::clamp(config_.get_int("speed.fast_forward", 4), 2, 8) : 1;
+    const int speed = ff ? (config_.get_int("speed.fast_forward", 2) >= 4 ? 4 : 2) : 1;
     if (speed != ff_speed_) {
         // Back to normal speed: drop the fast audio still queued so the sound catches up at once.
         if (speed == 1 && audio_) SDL_ClearAudioStream(audio_);
