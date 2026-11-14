@@ -50,6 +50,18 @@ const char* name(Blend b) {
     }
 }
 
+const char* name(UiSize u) {
+    switch (u) {
+        case UiSize::Auto: return "Auto";
+        case UiSize::P100: return "100%";
+        case UiSize::P125: return "125%";
+        case UiSize::P150: return "150%";
+        case UiSize::P175: return "175%";
+        case UiSize::P200: return "200%";
+        default: return "?";
+    }
+}
+
 namespace {
 template <typename E>
 bool parse_enum(const std::string& value, E& out) {
@@ -75,6 +87,7 @@ void store(const Settings& s, const Setter& set) {
     set("display.overlay_strength", std::to_string(s.overlay_strength));
     set("display.color", name(s.color));
     set("display.blend", name(s.blend));
+    set("display.ui_size", name(s.ui_size));
 }
 
 Settings load(const Getter& get) {
@@ -86,6 +99,7 @@ Settings load(const Getter& get) {
     parse_enum(trim(get("display.overlay", "")), s.overlay);
     parse_enum(trim(get("display.color", "")), s.color);
     parse_enum(trim(get("display.blend", "")), s.blend);
+    parse_enum(trim(get("display.ui_size", "")), s.ui_size);
     try {
         s.overlay_strength = std::clamp(std::stoi(get("display.overlay_strength", "40")), 0, 100);
     } catch (...) {
@@ -122,10 +136,41 @@ Layout compute_layout(int out_w, int out_h, ScaleMode mode, int src_w, int src_h
         const double f = std::min(double(out_w) / src_w, double(out_h) / src_h);
         l.dest.w = std::max(1, int(std::lround(src_w * f)));
         l.dest.h = std::max(1, int(std::lround(src_h * f)));
+        if (f > 1.0 && std::abs(f - std::round(f)) > 1e-6) l.prescale = int(std::ceil(f));
     }
     l.dest.x = (out_w - l.dest.w) / 2;
     l.dest.y = (out_h - l.dest.h) / 2;
     return l;
+}
+
+float ui_scale(UiSize size, float win_w, float win_h, float content_scale) {
+    if (!(content_scale > 0.0f)) content_scale = 1.0f;
+    content_scale = std::clamp(content_scale, 0.5f, kUiMaxScale);
+    win_w = std::max(win_w, 1.0f);
+    win_h = std::max(win_h, 1.0f);
+    float f = 1.0f;
+    switch (size) {
+        case UiSize::P125: f = 1.25f; break;
+        case UiSize::P150: f = 1.5f; break;
+        case UiSize::P175: f = 1.75f; break;
+        case UiSize::P200: f = 2.0f; break;
+        case UiSize::Auto: {
+            const float pw = win_w / content_scale, ph = win_h / content_scale;
+            f = std::clamp(std::min(pw / kUiRefWidth, ph / kUiRefHeight), 1.0f, kUiMaxScale);
+            break;
+        }
+        default: break;
+    }
+    float s = content_scale * f;
+    // The menus need kUiMinWidth x kUiMinHeight units: shrink to fit, but never below 1.
+    s = std::min(s, std::min(win_w / kUiMinWidth, win_h / kUiMinHeight));
+    s = std::clamp(s, 1.0f, kUiMaxScale);
+    return std::floor(s * 8.0f + 1e-3f) / 8.0f;
+}
+
+Size2 default_window_size(int usable_w, int usable_h) {
+    const int n = std::clamp(std::min(usable_w * 3 / (4 * kWidth), usable_h * 3 / (4 * kHeight)), 3, 12);
+    return {kWidth * n, kHeight * n};
 }
 
 // ---------------------------------------------------------------------------------------

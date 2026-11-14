@@ -116,8 +116,8 @@ void display_tab(Config& config) {
     help_marker("Every GBA pixel becomes an exact block of screen pixels, so nothing shimmers or "
                 "blurs. Leaves a small border when the window is not an exact multiple.");
     changed |= ImGui::RadioButton("Fit to window", &scale, int(ScaleMode::Fit));
-    help_marker("Fills as much of the window as possible. Some pixels end up one screen pixel "
-                "wider than others.");
+    help_marker("Fills as much of the window as possible. Pixel edges are softened very slightly "
+                "so every pixel stays the same size.");
     s.scale = static_cast<ScaleMode>(scale);
 
     // Widescreen shows extra level at the sides (Gba::set_wide_margin); the host applies
@@ -145,6 +145,22 @@ void display_tab(Config& config) {
         if (SDL_Window* w = SDL_GetKeyboardFocus()) SDL_SetWindowFullscreen(w, fullscreen);
     }
     help_marker("F11 also switches fullscreen.");
+
+    theme::section("Interface");
+    if (ImGui::BeginCombo("Menu size", s.ui_size == UiSize::Auto ? "Auto" : name(s.ui_size))) {
+        for (int i = 0; i < int(UiSize::Count); ++i) {
+            const UiSize u = UiSize(i);
+            if (ImGui::Selectable(name(u), u == s.ui_size)) {
+                s.ui_size = u;
+                changed = true;
+            }
+        }
+        ImGui::EndCombo();
+    }
+    help_marker("Size of the launcher and these menus. Auto follows your system's display "
+                "scaling and grows with the window, so the menus look the same in a small "
+                "window and fullscreen on a large screen. The percentages are fixed sizes on top "
+                "of your system's display scaling.");
 
     theme::section("Look");
     bool gba_colors = s.color == ColorMode::GbaLcd;

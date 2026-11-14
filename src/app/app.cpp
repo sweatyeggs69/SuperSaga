@@ -2,12 +2,14 @@
 
 #include <SDL3/SDL.h>
 #include <imgui.h>
+#include <imgui_internal.h>  // input event queue, for the menu scaling (new_ui_frame)
 #include <imgui_impl_sdl3.h>
 #include <imgui_impl_sdlrenderer3.h>
 #include <stb_image.h>
 
 #include <array>
 #include <cctype>
+#include <cfloat>
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
@@ -146,6 +148,8 @@ private:
     void begin_card(const char* id, ImVec2 size);
     void draw_card_logo();
     void capture_window(const std::string& path);
+    void new_ui_frame();
+    void scale_mouse_events(float scale);
     void end_card();
 
     AppOptions opt_;
@@ -155,6 +159,10 @@ private:
     SDL_Texture* frame_tex_ = nullptr;
     SDL_Texture* logo_tex_ = nullptr;  // the SuperSaga logo on the launcher card
     int logo_w_ = 0, logo_h_ = 0;
+    // Launcher and menu scaling (display::ui_scale): window coordinates per menu unit, and the
+    // scale the fonts were last rasterized at (ui scale x pixel density).
+    float ui_scale_ = 1.0f, font_raster_ = 0.0f;
+    ImU32 scaled_events_ = 0;  // input events up to this id are already in menu units
     void load_logo();
     SDL_AudioStream* audio_ = nullptr;
     std::unique_ptr<Presenter> presenter_;           // in-game video (display.* options)
@@ -212,8 +220,13 @@ private:
 
 bool App::init_window() {
     config_.erase("ui.language");  // left by 1.1.x, which had a launcher language setting
-    window_ = SDL_CreateWindow("SuperSaga", opt_.window_w > 0 ? opt_.window_w : 960,
-                               opt_.window_h > 0 ? opt_.window_h : 640,
+    // Start pixel perfect at the biggest multiple of the GBA screen that fits the screen well.
+    display::Size2 start{960, 640};
+    SDL_Rect usable{};
+    if (SDL_GetDisplayUsableBounds(SDL_GetPrimaryDisplay(), &usable) && usable.w > 0 && usable.h > 0)
+        start = display::default_window_size(usable.w, usable.h);
+    window_ = SDL_CreateWindow("SuperSaga", opt_.window_w > 0 ? opt_.window_w : start.w,
+                               opt_.window_h > 0 ? opt_.window_h : start.h,
                                SDL_WINDOW_RESIZABLE | SDL_WINDOW_HIGH_PIXEL_DENSITY | SDL_WINDOW_HIDDEN);
     if (!window_) return false;
     SDL_SetWindowMinimumSize(window_, 720, 480);
@@ -238,8 +251,7 @@ bool App::init_window() {
     ImGui_ImplSDL3_InitForSDLRenderer(window_, renderer_);
     ImGui_ImplSDLRenderer3_Init(renderer_);
     menu_pad::init();  // controllers reach the menus through handle_event, not the backend's polling
-    theme::apply(SDL_GetWindowPixelDensity(window_));
-    set_options_menu_fonts(theme::font_button(), theme::font_small());
+    // Fonts and style are set up by new_ui_frame(), at the window's scale.
     if (config_.get_string("display.fullscreen", "0") == "1") SDL_SetWindowFullscreen(window_, true);
     toast::set_renderer(renderer_);
     presenter_ = std::make_unique<Presenter>(renderer_, settings_io(config_));
@@ -612,6 +624,55 @@ void App::draw_backdrop() {
     SDL_SetTextureScaleMode(frame_tex_, SDL_SCALEMODE_LINEAR);
     SDL_RenderTexture(renderer_, frame_tex_, nullptr, &dst);
     SDL_SetTextureColorMod(frame_tex_, 255, 255, 255);
+}
+
+// Starts an ImGui frame with the menus scaled for the window (display::ui_scale). ImGui works in
+// menu units: the display size is divided by the scale and the framebuffer scale multiplied by
+// it, so every size in the layout code (all written for 100%) grows with it. The fonts are
+// rasterized again when the scale or the pixel density changes (another screen), so text
+// stays sharp.
+void App::new_ui_frame() {
+    int ww = 0, wh = 0;
+    SDL_GetWindowSize(window_, &ww, &wh);
+    float density = SDL_GetWindowPixelDensity(window_);
+    if (!(density > 0.0f)) density = 1.0f;
+    const float display_scale = SDL_GetWindowDisplayScale(window_);
+    const float content = display_scale > 0.0f ? display_scale / density : 1.0f;
+    display::UiSize size = display::UiSize::Auto;
+    const std::string want = config_.get_string("display.ui_size", "Auto");
+    for (int i = 0; i < int(display::UiSize::Count); ++i)
+        if (want == display::name(display::UiSize(i))) size = display::UiSize(i);
+    if (ww > 0 && wh > 0) ui_scale_ = display::ui_scale(size, float(ww), float(wh), content);
+    // Capped so the font atlas stays a sensible size (beyond 6x, text is upscaled a little).
+    const float raster = std::min(ui_scale_ * density, 6.0f);
+    if (raster != font_raster_) {
+        theme::apply(raster);
+        set_options_menu_fonts(theme::font_button(), theme::font_small());
+        ImGui_ImplSDLRenderer3_DestroyFontsTexture();  // rebuilt by the NewFrame below
+        font_raster_ = raster;
+    }
+    ImGui_ImplSDLRenderer3_NewFrame();
+    ImGui_ImplSDL3_NewFrame();
+    ImGuiIO& io = ImGui::GetIO();
+    io.DisplaySize = ImVec2(io.DisplaySize.x / ui_scale_, io.DisplaySize.y / ui_scale_);
+    io.DisplayFramebufferScale = ImVec2(io.DisplayFramebufferScale.x * ui_scale_, io.DisplayFramebufferScale.y * ui_scale_);
+    scale_mouse_events(ui_scale_);
+    menu_pad::new_frame();
+    ImGui::NewFrame();
+}
+
+// The SDL backend queues mouse positions in window coordinates; turn the new ones into menu
+// units before ImGui reads them.
+void App::scale_mouse_events(float scale) {
+    ImGuiContext& g = *ImGui::GetCurrentContext();
+    for (ImGuiInputEvent& ev : g.InputEventsQueue) {
+        if (ev.EventId <= scaled_events_) continue;
+        if (ev.Type == ImGuiInputEventType_MousePos && ev.MousePos.PosX != -FLT_MAX && ev.MousePos.PosY != -FLT_MAX) {
+            ev.MousePos.PosX /= scale;
+            ev.MousePos.PosY /= scale;
+        }
+    }
+    if (g.InputEventsNextEventId > 0) scaled_events_ = g.InputEventsNextEventId - 1;
 }
 
 void App::capture_window(const std::string& path) {
@@ -1716,10 +1777,7 @@ int App::run() {
                 presenter_->draw(game_->wide_framebuffer(), game_->wide_width(), controls_->remap_prompt());
             }
             if (toast) {  // small save-state notice with the slot's thumbnail
-                ImGui_ImplSDLRenderer3_NewFrame();
-                ImGui_ImplSDL3_NewFrame();
-                menu_pad::new_frame();
-                ImGui::NewFrame();
+                new_ui_frame();
                 toast::draw();
                 ImGui::Render();
                 ImGuiIO& io = ImGui::GetIO();
@@ -1732,10 +1790,7 @@ int App::run() {
             std::string msg = controls_->take_message();
             if (!msg.empty()) presenter_->show_message(msg);
         } else {
-            ImGui_ImplSDLRenderer3_NewFrame();
-            ImGui_ImplSDL3_NewFrame();
-            menu_pad::new_frame();
-            ImGui::NewFrame();
+            new_ui_frame();
             draw_ui();
             ImGui::Render();
             ImGuiIO& io = ImGui::GetIO();

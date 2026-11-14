@@ -57,6 +57,10 @@ private:
     std::vector<std::uint32_t> rgb_;
     SDL_Texture* screen_ = nullptr;
     int screen_w_ = 0;
+    // Fit at a fractional scale: the frame drawn Layout::prescale times larger with hard
+    // edges, then smoothed down to the window (sharp bilinear).
+    SDL_Texture* prescaled_ = nullptr;
+    int prescaled_w_ = 0, prescaled_h_ = 0;
 
     SDL_Texture* overlay_ = nullptr;
     std::vector<std::uint32_t> overlay_pixels_;

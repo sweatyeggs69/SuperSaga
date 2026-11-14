@@ -15,6 +15,7 @@ Presenter::Presenter(SDL_Renderer* renderer, SettingsIO io) : renderer_(renderer
 
 Presenter::~Presenter() {
     if (overlay_) SDL_DestroyTexture(overlay_);
+    if (prescaled_) SDL_DestroyTexture(prescaled_);
     if (screen_) SDL_DestroyTexture(screen_);
 }
 
@@ -61,9 +62,28 @@ void Presenter::redraw(const std::string& prompt) {
     const Layout layout = compute_layout(out_w, out_h, settings_.scale, screen_w_, kHeight);
     const SDL_FRect dst{float(layout.dest.x), float(layout.dest.y), float(layout.dest.w), float(layout.dest.h)};
 
+    // Fit at a fractional scale: scale up by a whole number with hard edges first, then
+    // smooth down the last bit, so the pixels all look the same size instead of some being a
+    // screen pixel wider than others. Falls back to plain nearest if render targets fail.
+    SDL_Texture* src = screen_;
+    if (layout.prescale > 1) {
+        const int pw = screen_w_ * layout.prescale, ph = kHeight * layout.prescale;
+        if (!prescaled_ || pw != prescaled_w_ || ph != prescaled_h_) {
+            if (prescaled_) SDL_DestroyTexture(prescaled_);
+            prescaled_ = SDL_CreateTexture(renderer_, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_TARGET, pw, ph);
+            if (prescaled_) SDL_SetTextureScaleMode(prescaled_, SDL_SCALEMODE_LINEAR);
+            prescaled_w_ = pw;
+            prescaled_h_ = ph;
+        }
+        if (prescaled_ && SDL_SetRenderTarget(renderer_, prescaled_)) {
+            SDL_RenderTexture(renderer_, screen_, nullptr, nullptr);
+            SDL_SetRenderTarget(renderer_, nullptr);
+            src = prescaled_;
+        }
+    }
     SDL_SetRenderDrawColor(renderer_, 0, 0, 0, 255);
     SDL_RenderClear(renderer_);
-    SDL_RenderTexture(renderer_, screen_, nullptr, &dst);
+    SDL_RenderTexture(renderer_, src, nullptr, &dst);
 
     // The overlay is a multiply mask at the exact output size, rebuilt only when it changes.
     if (layout.dest.w != overlay_w_ || layout.dest.h != overlay_h_ || settings_.overlay != overlay_kind_ ||
