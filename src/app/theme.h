@@ -34,8 +34,9 @@ inline ImU32 u32(const ImVec4& c, float alpha_mul = 1.0f) {
     return ImGui::ColorConvertFloat4ToU32(ImVec4(c.x, c.y, c.z, c.w * alpha_mul));
 }
 
-// Loads the fonts and applies the style. ui_scale is the display content scale (1.0, 2.0, ...).
-// Call once after ImGui::CreateContext() and before the first NewFrame().
+// Loads the fonts and applies the style. ui_scale is how many framebuffer pixels one menu unit
+// takes (menu scale x pixel density: 1.0, 2.0, 2.5, ...). Call outside a frame, after
+// ImGui::CreateContext() and again whenever that scale changes (then recreate the font texture).
 void apply(float ui_scale);
 
 ImFont* font_body();     // 17 px regular

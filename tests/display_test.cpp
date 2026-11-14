@@ -108,11 +108,12 @@ static void settings_roundtrip() {
     s.overlay_strength = 70;
     s.color = ColorMode::GbaLcd;
     s.blend = Blend::Ghost;
+    s.ui_size = UiSize::P150;
     store(s, [&](const std::string& k, const std::string& v) { kv[k] = v; });
     auto get = [&](const std::string& k, const std::string& d) { auto it = kv.find(k); return it == kv.end() ? d : it->second; };
     Settings t = load(get);
     CHECK(t.scale == s.scale && t.aspect == s.aspect && t.overlay == s.overlay);
-    CHECK(t.overlay_strength == 70 && t.color == s.color && t.blend == s.blend);
+    CHECK(t.overlay_strength == 70 && t.color == s.color && t.blend == s.blend && t.ui_size == UiSize::P150);
     kv["display.aspect"] = "4:3";  // removed (stretched) setting falls back to native
     kv["display.overlay_strength"] = "x";
     t = load(get);
@@ -154,8 +155,52 @@ static void turbo() {
     for (int f = 0; f < 30; ++f) CHECK(st.step(0x3, t) == 0x3);
 }
 
+static void ui_scaling() {
+    // macOS (content scale 1): the default window and anything up to 1280x800 points is 100%.
+    CHECK(ui_scale(UiSize::Auto, 960, 640, 1.0f) == 1.0f);
+    CHECK(ui_scale(UiSize::Auto, 1280, 800, 1.0f) == 1.0f);
+    // Fullscreen on a 1440x900 MacBook: a little bigger; on a 1080p screen about a third bigger.
+    CHECK(ui_scale(UiSize::Auto, 1440, 900, 1.0f) == 1.125f);
+    CHECK(ui_scale(UiSize::Auto, 1920, 1080, 1.0f) == 1.25f);
+    // 1440p and 4K at 100%: the menus keep the same share of the screen.
+    CHECK(ui_scale(UiSize::Auto, 2560, 1440, 1.0f) == 1.75f);
+    CHECK(ui_scale(UiSize::Auto, 3840, 2160, 1.0f) == 2.625f);
+    // Windows at 150%: the system scaling applies even in a small window...
+    CHECK(ui_scale(UiSize::Auto, 1440, 960, 1.5f) == 1.5f);
+    // ...and 4K at 150% looks like 1440p at 100%.
+    CHECK(ui_scale(UiSize::Auto, 3840, 2160, 1.5f) == 2.625f);
+    // Too small a window for 150%: shrinks to fit the menus, never below 100%.
+    CHECK(ui_scale(UiSize::Auto, 960, 640, 1.5f) == 1.25f);
+    CHECK(ui_scale(UiSize::Auto, 720, 480, 1.5f) == 1.0f);
+    CHECK(ui_scale(UiSize::P200, 600, 400, 1.0f) == 1.0f);
+    // Fixed sizes ignore the window size but include the system scaling.
+    CHECK(ui_scale(UiSize::P100, 3840, 2160, 1.0f) == 1.0f);
+    CHECK(ui_scale(UiSize::P150, 3840, 2160, 1.0f) == 1.5f);
+    CHECK(ui_scale(UiSize::P150, 3840, 2160, 2.0f) == 3.0f);
+    CHECK(ui_scale(UiSize::P200, 7680, 4320, 3.0f) == kUiMaxScale);
+    // Bad input from the platform falls back to 100%.
+    CHECK(ui_scale(UiSize::Auto, 0, 0, 0.0f) == 1.0f);
+
+    // Starting window: whole multiples of 240x160 in three quarters of the usable area.
+    Size2 w = default_window_size(1440, 875);  // 13" MacBook Air
+    CHECK(w.w == 960 && w.h == 640);
+    w = default_window_size(2560, 1400);  // 1440p
+    CHECK(w.w == 1440 && w.h == 960);
+    w = default_window_size(1366, 728);  // small laptop: never below 3x
+    CHECK(w.w == 720 && w.h == 480);
+
+    // Fit at a fractional scale draws through a prescaled copy; exact fits do not.
+    Layout l = compute_layout(1920, 1080, ScaleMode::Fit);
+    CHECK(!l.pixel_perfect && l.prescale == 7 && l.dest.h == 1080);
+    l = compute_layout(1920, 960, ScaleMode::Fit);
+    CHECK(l.prescale == 0 && l.dest.h == 960);
+    l = compute_layout(1920, 1080, ScaleMode::Integer);
+    CHECK(l.prescale == 0);
+}
+
 int main() {
     turbo();
+    ui_scaling();
     layouts();
     colors();
     blending();

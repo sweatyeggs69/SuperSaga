@@ -46,6 +46,10 @@ enum class ColorMode { Raw, GbaLcd, Count };
 // Ghost: exponential trail like the slow response of the original GBA LCD.
 enum class Blend { Off, Mix, Ghost, Count };
 
+// Size of the launcher and menus. Auto follows the system's display scaling and grows with
+// the window (see ui_scale); the others are fixed multiples of the system's display scaling.
+enum class UiSize { Auto, P100, P125, P150, P175, P200, Count };
+
 struct Settings {
     ScaleMode scale = ScaleMode::Integer;
     Aspect aspect = Aspect::Native;
@@ -53,6 +57,7 @@ struct Settings {
     int overlay_strength = 40;  // percent, 0..100
     ColorMode color = ColorMode::Raw;
     Blend blend = Blend::Off;
+    UiSize ui_size = UiSize::Auto;
 };
 
 const char* name(ScaleMode m);
@@ -60,6 +65,7 @@ const char* name(Aspect a);
 const char* name(Overlay o);
 const char* name(ColorMode c);
 const char* name(Blend b);
+const char* name(UiSize u);
 
 // Settings live in the app's key/value config under display.* keys. Missing keys and bad
 // values fall back to defaults, so old config files keep working.
@@ -77,6 +83,10 @@ struct Layout {
     int scale_x = 0;        // integer factors when pixel perfect, else 0
     int scale_y = 0;
     bool pixel_perfect = false;
+    // Fit at a fractional scale: draw the frame this many times larger with hard pixel edges
+    // first, then smooth it down to dest, so every GBA pixel looks the same size ("sharp
+    // bilinear"). 0 when not needed (pixel perfect, or an exact whole-number fit).
+    int prescale = 0;
 };
 
 // Width/height ratio for an aspect.
@@ -86,6 +96,32 @@ double aspect_ratio(Aspect a);
 // Integer mode uses the largest whole-number scale that fits; if even 1x does not fit it
 // falls back to Fit.
 Layout compute_layout(int out_w, int out_h, ScaleMode mode, int src_w = kWidth, int src_h = kHeight);
+
+// ---- Launcher and menu scaling -----------------------------------------------------------
+// The menus are laid out in fixed units ("points" at 100%). ui_scale says how many window
+// coordinates one unit takes. content_scale is the system's display scaling on top of the
+// pixel density (125%, 150% on Windows and Linux; 1 on macOS, where Retina is pixel density).
+
+// Window size, in points, at which Auto draws the menus at 100%. Bigger windows (fullscreen on
+// a large screen) scale the menus up so they take the same share of the screen.
+inline constexpr float kUiRefWidth = 1280.0f, kUiRefHeight = 800.0f;
+// Smallest space, in units, the menus are laid out for (the minimum window at 100%).
+inline constexpr float kUiMinWidth = 720.0f, kUiMinHeight = 480.0f;
+// Largest menu scale, so the font atlas stays a sensible size.
+inline constexpr float kUiMaxScale = 4.0f;
+
+// Window coordinates per menu unit for a win_w x win_h window (window coordinates). Never
+// below 1, shrinks a fixed size when the window is too small to hold the menus, and is
+// rounded down to 1/8 steps so resizing the window rebuilds the fonts only now and then.
+float ui_scale(UiSize size, float win_w, float win_h, float content_scale);
+
+// Starting window size, in window coordinates, for a screen whose usable area (without the
+// taskbar or menu bar) is usable_w x usable_h: the biggest whole multiple of the GBA screen
+// that takes at most three quarters of it, so the game starts pixel perfect. At least 3x.
+struct Size2 {
+    int w = 0, h = 0;
+};
+Size2 default_window_size(int usable_w, int usable_h);
 
 // Converts BGR555 GBA pixels to 0xAARRGGBB through a lookup table per color mode.
 class ColorPipeline {

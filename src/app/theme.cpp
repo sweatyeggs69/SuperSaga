@@ -34,7 +34,9 @@ ImFont* add_font(const unsigned char* data, unsigned size, float px, float scale
     ImGuiIO& io = ImGui::GetIO();
     ImFontConfig cfg;
     cfg.FontDataOwnedByAtlas = false;
-    cfg.OversampleH = 2;
+    // Horizontal oversampling only helps small rasters; large ones are sharp already and
+    // would make the atlas needlessly big.
+    cfg.OversampleH = scale >= 2.0f ? 1 : 2;
     ImFont* f = io.Fonts->AddFontFromMemoryTTF(const_cast<unsigned char*>(data), int(size), px * scale, &cfg);
     // Merge the icons in, a little smaller than the text and centered on it.
     static const ImWchar icon_ranges[] = {0xE000, 0xE5FF, 0};
@@ -53,7 +55,8 @@ ImFont* add_font(const unsigned char* data, unsigned size, float px, float scale
 void apply(float ui_scale) {
     ImGuiIO& io = ImGui::GetIO();
     io.Fonts->Clear();
-    // Fonts are rasterized at the pixel density and scaled back, so text stays sharp on HiDPI.
+    // Fonts are rasterized at the menu scale times the pixel density and scaled back, so text
+    // stays sharp at any size and on HiDPI screens.
     const float px = ui_scale > 0 ? ui_scale : 1.0f;
     g_body = add_font(supersaga_font_dmsans_regular, supersaga_font_dmsans_regular_size, 17.0f, px);
     g_small = add_font(supersaga_font_dmsans_regular, supersaga_font_dmsans_regular_size, 15.0f, px);
