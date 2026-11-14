@@ -67,6 +67,7 @@ settings folder.
 ## Features
 
 - **Settings menu (F1)** for display (scaling, 16:10 and 16:9 widescreen, screen effects), controls and more.
+- **Sharp at any resolution:** the launcher and menus follow your display scaling and grow with the window, from a small laptop to fullscreen 4K (Display > Menu size to adjust).
 - **Keyboard and controllers**, with full remapping.
 - **Save states**: ten slots with thumbnails. Quick save and load use Slot 1 unless you pick another.
 - **Fast forward and rewind**: fast forward at 2x or 4x, rewind up to the last 10 seconds.
