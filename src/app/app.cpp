@@ -568,7 +568,9 @@ void App::update_emulation() {
     // Safety cap (~200 ms queued, of game time); normal sync comes from update_audio_rate().
     if (audio_ && !audio_buf_.empty() && SDL_GetAudioStreamQueued(audio_) < gba::kAudioRate / 5 * 4 * ff_speed_) {
         const bool ff_mute = ff_speed_ > 1 && !config_.get_bool("speed.fast_forward_sound", false);
-        SDL_SetAudioStreamGain(audio_, opt_.silent_audio || ff_mute ? 0.0f : screen_ == Screen::Game ? 1.0f : 0.35f);
+        const float volume = std::clamp(config_.get_int("audio.volume", 100), 0, 100) / 100.0f;  // Sound > Volume
+        SDL_SetAudioStreamGain(audio_, opt_.silent_audio || ff_mute ? 0.0f
+                                       : volume * (screen_ == Screen::Game ? 1.0f : 0.35f));
         SDL_PutAudioStreamData(audio_, audio_buf_.data(), int(audio_buf_.size() * sizeof(std::int16_t)));
     }
 }

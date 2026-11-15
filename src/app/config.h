@@ -6,7 +6,8 @@
 //   rom.*      ROM selection (rom.path, rom.sha1)
 //   display.*  video options (owned by the options panel)
 //   input.*    controls / remapping (owned by the options panel)
-//   audio.*, save.*, bios.*  reserved
+//   audio.*   sound (audio.volume, 0-100, default 100)
+//   save.*, bios.*  reserved
 
 #include <filesystem>
 #include <map>
