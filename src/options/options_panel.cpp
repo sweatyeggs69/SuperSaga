@@ -252,6 +252,17 @@ CellAction binding_cell(input::Manager& in, Source src, bool waiting, const std:
     return act;
 }
 
+// Game volume: a plain gain on the output stream (no filtering), saved as audio.volume (0-100).
+void sound_tab(Config& config) {
+    theme::section("Volume");
+    int volume = std::clamp(config.get_int("audio.volume", 100), 0, 100);
+    if (ImGui::SliderInt("Game volume", &volume, 0, 100, volume == 0 ? "Muted" : "%d%%", ImGuiSliderFlags_AlwaysClamp))
+        config.set_int("audio.volume", volume);
+    help_marker("How loud the game is, from muted to full volume. Your system volume still "
+                "applies on top. Select the slider and press Enter or A, then Left and Right, "
+                "to change it with the keyboard or a controller.");
+}
+
 void controls_tab(input::Manager& in, Config& config) {
     const Button waiting = in.remap_target();
     theme::section("Buttons");
@@ -486,6 +497,7 @@ struct Page {
 const char* default_description(const std::string& name) {
     if (name == "Game") return "Your game file, how it starts, and shortcuts.";
     if (name == "Display") return "How the game is drawn on your screen.";
+    if (name == "Sound") return "How loud the game is.";
     if (name == "Controls") return "Keyboard and controller buttons, turbo, fast forward and shortcuts.";
     if (name == "States") return "Save states: save and load anywhere.";
     if (name == "Cheats") return "Optional changes to the game.";
@@ -504,6 +516,7 @@ std::vector<Page> collect_pages(PanelState& st, supersaga::Config& config) {
     };
     extras(true);
     pages.push_back({"Display", default_description("Display"), [&config] { display_tab(config); }});
+    pages.push_back({"Sound", default_description("Sound"), [&config] { sound_tab(config); }});
     pages.push_back({"Controls", default_description("Controls"), [&st, &config] { controls_tab(*st.input, config); }});
     extras(false);
     return pages;
