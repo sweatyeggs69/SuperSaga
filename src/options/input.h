@@ -148,6 +148,11 @@ public:
     std::string describe(Action a, Source source = Source::Any) const;  // "Right Paddle 1" or "None"
     std::string take_message();           // one-shot status text for the on-screen display
     int gamepad_count() const { return int(devices_.size()); }
+    // Rumbles every connected controller that can (motor values 0..0xFFFF, low = the big, slow
+    // motor) for ms milliseconds, replacing whatever was playing. rumble(0, 0, 0) stops it.
+    // Returns how many controllers took it.
+    int rumble(std::uint16_t low, std::uint16_t high, int ms);
+    void stop_rumble() { rumble(0, 0, 0); }
 
 private:
     // One open controller: a gamepad (pad set) or a raw joystick SDL has no layout for.
