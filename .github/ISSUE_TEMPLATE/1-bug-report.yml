@@ -59,10 +59,3 @@ body:
     attributes:
       label: Screenshot or video
       description: Optional. Drag files here. Helpful for graphics or sound problems.
-
-  - type: textarea
-    id: logs
-    attributes:
-      label: Log output
-      description: Optional. Start SuperSaga from a terminal with `--verbose` and paste what it prints.
-      render: text
