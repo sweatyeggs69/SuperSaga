@@ -41,6 +41,9 @@
 
 extern const unsigned char supersaga_image_logo[];
 extern const unsigned supersaga_image_logo_size;
+// The app icon (512x512 PNG, rendered by supersaga_icon), also used for the window icon.
+extern const unsigned char supersaga_image_icon[];
+extern const unsigned supersaga_image_icon_size;
 #include "sha1.h"
 #include "update/update_ui.h"
 #include "update/updater.h"
@@ -163,6 +166,7 @@ private:
     // scale the fonts were last rasterized at (ui scale x pixel density).
     float ui_scale_ = 1.0f, font_raster_ = 0.0f;
     ImU32 scaled_events_ = 0;  // input events up to this id are already in menu units
+    void set_window_icon();
     void load_logo();
     SDL_AudioStream* audio_ = nullptr;
     std::unique_ptr<Presenter> presenter_;           // in-game video (display.* options)
@@ -236,6 +240,7 @@ bool App::init_window() {
     update_refresh_rate();
     frame_tex_ = SDL_CreateTexture(renderer_, SDL_PIXELFORMAT_XBGR1555, SDL_TEXTUREACCESS_STREAMING, kW, kH);
     SDL_SetTextureScaleMode(frame_tex_, SDL_SCALEMODE_NEAREST);
+    set_window_icon();
     load_logo();
 
     SDL_AudioSpec spec{SDL_AUDIO_S16, 2, gba::kAudioRate};
@@ -683,6 +688,23 @@ void App::capture_window(const std::string& path) {
         SDL_SaveBMP(shot, path.c_str());
         SDL_DestroySurface(shot);
     }
+}
+
+void App::set_window_icon() {
+#if !defined(_WIN32)
+    // Windows takes the window and taskbar icon from SuperSaga.exe. Everywhere else SDL shows a
+    // generic icon unless it is handed one: the Wayland window icon (the "W" icon when SuperSaga
+    // runs from a terminal with no matching .desktop file), the X11 _NET_WM_ICON and the macOS
+    // Dock icon of a plain build/supersaga, which has no bundle icon.
+    int w = 0, h = 0, n = 0;
+    unsigned char* px = stbi_load_from_memory(supersaga_image_icon, int(supersaga_image_icon_size), &w, &h, &n, 4);
+    if (!px) return;
+    if (SDL_Surface* icon = SDL_CreateSurfaceFrom(w, h, SDL_PIXELFORMAT_RGBA32, px, w * 4)) {
+        SDL_SetWindowIcon(window_, icon);  // SDL copies the pixels
+        SDL_DestroySurface(icon);
+    }
+    stbi_image_free(px);
+#endif
 }
 
 void App::load_logo() {
