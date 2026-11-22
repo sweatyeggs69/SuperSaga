@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "app/config.h"
+#include "app/rumble.h"
 #include "app/theme.h"
 #include "game.h"
 #include "options/display.h"
@@ -263,6 +264,33 @@ void sound_tab(Config& config) {
                 "to change it with the keyboard or a controller.");
 }
 
+// Controller rumble: input.rumble (on/off) and input.rumble_strength (percent). The game's events
+// come from app/rumble.h; the host scales every pulse by the strength.
+void rumble_section(input::Manager& in, Config& config) {
+    theme::section("Rumble");
+    bool on = config.get_bool("input.rumble", rumble::kDefaultOn);
+    if (theme::toggle("Controller rumble", &on)) {
+        config.set_bool("input.rumble", on);
+        if (!on) in.stop_rumble();
+    }
+    help_marker(rumble::kEventsHelp);
+    ImGui::BeginDisabled(!on);
+    int strength = std::clamp(config.get_int("input.rumble_strength", rumble::kDefaultStrength),
+                              rumble::kMinStrength, 100);
+    if (ImGui::SliderInt("Rumble strength", &strength, rumble::kMinStrength, 100, "%d%%",
+                         ImGuiSliderFlags_AlwaysClamp))
+        config.set_int("input.rumble_strength", strength);
+    help_marker("How hard the controller shakes. Select the slider and press Enter or A, then Left "
+                "and Right, to change it with the keyboard or a controller.");
+    if (ImGui::Button("Test rumble"))
+        in.rumble(rumble::motor(0.95f, strength), rumble::motor(0.55f, strength), 300);  // a heavy hit
+    if (in.gamepad_count() == 0) {
+        ImGui::SameLine();
+        ImGui::TextDisabled("No controller connected");
+    }
+    ImGui::EndDisabled();
+}
+
 void controls_tab(input::Manager& in, Config& config) {
     const Button waiting = in.remap_target();
     theme::section("Buttons");
@@ -328,6 +356,9 @@ void controls_tab(input::Manager& in, Config& config) {
             ImGui::EndTable();
         }
     }
+
+    ImGui::Spacing();
+    rumble_section(in, config);
 
     ImGui::Spacing();
     theme::section("Turbo");
@@ -498,7 +529,7 @@ const char* default_description(const std::string& name) {
     if (name == "Game") return "Your game file, how it starts, and shortcuts.";
     if (name == "Display") return "How the game is drawn on your screen.";
     if (name == "Sound") return "How loud the game is.";
-    if (name == "Controls") return "Keyboard and controller buttons, turbo, fast forward and shortcuts.";
+    if (name == "Controls") return "Keyboard and controller buttons, rumble, turbo, fast forward and shortcuts.";
     if (name == "States") return "Save states: save and load anywhere.";
     if (name == "Cheats") return "Optional changes to the game.";
     if (name == "Achievements") return "RetroAchievements sign-in and progress.";

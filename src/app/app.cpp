@@ -27,6 +27,7 @@
 #include "app/platform.h"
 #include "app/save_import.h"
 #include "app/rewind.h"
+#include "app/rumble.h"
 #include "app/states.h"
 #include "app/licenses.h"
 #include "app/theme.h"
@@ -119,6 +120,10 @@ private:
     bool rewind_allowed() const;
     void update_speed();  // fast forward and rewind, read once per refresh
     rewind::History rewind_;
+    rumble::Watcher rumble_watch_;
+    rumble::Player rumble_player_;
+    void play_rumble(const rumble::Pattern& p);
+    void stop_rumble();  // and forget the last frame (the game is paused, rewound or reloaded)
     const gba::Gba* rewind_owner_ = nullptr;  // the game the history belongs to
     int rewind_tick_ = 0;
     bool rewinding_ = false;
@@ -442,6 +447,7 @@ void App::start_game() {
     if (!game_ && rom_.ok) game_ = make_gba(true);
     attract_.reset();
     game_paused_ = false;
+    rumble_watch_.reset();
     screen_ = Screen::Game;
     game_started_at_ = ImGui::GetTime();
     if (audio_) SDL_ClearAudioStream(audio_);
@@ -459,6 +465,7 @@ void App::set_menu_open(bool open) {
 
 void App::return_to_launcher() {
     controls_->set_fast_forward_latched(false);
+    stop_rumble();
     auto_save();
     options_menu_set_open(false);
     game_paused_ = true;
@@ -522,9 +529,11 @@ void App::update_emulation() {
         draw_test_pattern(pattern_, std::uint32_t(frames_));
         pixels = pattern_.data();
     } else if (screen_ == Screen::Game && game_ && options_menu_open()) {
+        stop_rumble();
         pixels = game_->framebuffer();  // paused under the settings menu
     } else if (screen_ == Screen::Game && game_ && rewinding_) {
         // Rewind: step back through the history, silently, one snapshot per frame.
+        stop_rumble();
         if (const std::vector<std::uint8_t>* back = rewind_.step_back()) {
             game_->load_state(*back);
         }
@@ -536,6 +545,7 @@ void App::update_emulation() {
         const std::uint16_t keys = std::uint16_t(controls_->poll_frame() | script_keys_);
         game_->set_keys(keys);
         game_->run_frame();
+        play_rumble(rumble_watch_.step(game_->iwram(), game_->ewram()));  // before the cheats refill anything
         if (cheats_allowed()) {
             cheats::apply(game_->ewram_mut(), cheats::Flags{config_.get_bool("cheats.hp", false),
                                                             config_.get_bool("cheats.bp", false),
@@ -562,6 +572,7 @@ void App::update_emulation() {
             rewind_.clear();
         }
     } else if (game_ && game_paused_) {
+        stop_rumble();
         pixels = game_->framebuffer();
     } else if (attract_) {
         attract_->run_frame();
@@ -578,6 +589,27 @@ void App::update_emulation() {
                                        : volume * (screen_ == Screen::Game ? 1.0f : 0.35f));
         SDL_PutAudioStreamData(audio_, audio_buf_.data(), int(audio_buf_.size() * sizeof(std::int16_t)));
     }
+}
+
+void App::play_rumble(const rumble::Pattern& p) {
+    // Off, or fast forwarding (patterns are timed in game frames, so they would play too fast):
+    // keep watching, so nothing piles up, but keep the motors quiet.
+    if (!config_.get_bool("input.rumble", rumble::kDefaultOn) || ff_speed_ > 1) {
+        if (rumble_player_.playing()) controls_->stop_rumble();
+        rumble_player_.clear();
+        return;
+    }
+    const int strength = std::clamp(config_.get_int("input.rumble_strength", rumble::kDefaultStrength),
+                                    rumble::kMinStrength, 100);
+    rumble_player_.start(p);
+    if (const std::optional<rumble::Step> s = rumble_player_.next())
+        controls_->rumble(rumble::motor(s->low, strength), rumble::motor(s->high, strength), s->ms);
+}
+
+void App::stop_rumble() {
+    rumble_watch_.reset();
+    if (rumble_player_.playing()) controls_->stop_rumble();
+    rumble_player_.clear();
 }
 
 void App::update_refresh_rate() {

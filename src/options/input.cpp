@@ -664,6 +664,16 @@ void Manager::close_device(SDL_JoystickID id) {
         }
 }
 
+int Manager::rumble(std::uint16_t low, std::uint16_t high, int ms) {
+    int n = 0;
+    for (const Device& d : devices_) {
+        const bool ok = d.pad ? SDL_RumbleGamepad(d.pad, low, high, Uint32(std::max(ms, 0)))
+                              : d.joy && SDL_RumbleJoystick(d.joy, low, high, Uint32(std::max(ms, 0)));
+        n += ok ? 1 : 0;
+    }
+    return n;
+}
+
 const Manager::Device* Manager::device(SDL_JoystickID id) const {
     for (const auto& d : devices_)
         if (d.id == id) return &d;
