@@ -1501,6 +1501,9 @@ void App::draw_game_tab(Config& config) {
                            unsigned(rom_.rom.header.version));
         ImGui::TextColored(c.ink_muted, "SHA-1 %s", rom_.rom.sha1.c_str());
         ImGui::PushTextWrapPos(0);
+        if (!rom_.rom.fixes.empty())
+            ImGui::TextColored(c.ink_muted, "Your file was a different dump of the same cartridge. %s.",
+                               rom_.rom.fixes.c_str());
         ImGui::TextColored(c.ink_muted, "%s", path_utf8(rom_.path).c_str());
         ImGui::PopTextWrapPos();
         ImGui::PopFont();

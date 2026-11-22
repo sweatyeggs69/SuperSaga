@@ -22,6 +22,7 @@ inline constexpr const char* kFileSafeTitle = "Mario & Luigi - Superstar Saga";
 // GBA cartridge header of the supported dump.
 inline constexpr const char* kHeaderTitle = "MARIO&LUIGIU";  // 0xA0, 12 bytes
 inline constexpr const char* kGameCode = "A88E";             // 0xAC, 4 bytes
+inline constexpr const char* kMakerCode = "01";             // 0xB0, 2 bytes (Nintendo)
 inline constexpr unsigned kRevision = 0;                     // 0xBC
 inline constexpr std::size_t kRomSize = 16 * 1024 * 1024;
 
@@ -30,6 +31,18 @@ inline constexpr std::size_t kRomSize = 16 * 1024 * 1024;
 // emptied, a ROM is accepted on a header match instead and the launcher labels it
 // "header match (fingerprint not pinned yet)".
 inline constexpr const char* kExpectedSha1 = "7c303cdde5061ee329296948060b875cb50ba410";
+
+// Other releases of the game, recognised only so the error message can say what the file is.
+// None of them can run: the recompiled code is the USA revision 0 code.
+struct OtherRelease {
+    const char* sha1;       // exact dump, or nullptr to match on the game code alone
+    const char* game_code;  // 0xAC
+    const char* name;       // shown to the user
+};
+inline constexpr OtherRelease kOtherReleases[] = {
+    {nullptr, "A88P", "a European release"},
+    {nullptr, "A88J", "a Japanese release"},
+};
 
 // Battery save: 64 Kbit (8 KiB) serial EEPROM (the ROM carries the EEPROM_V124 library string).
 // The runtime picks the chip from that string; this is the size of the save file it writes.
