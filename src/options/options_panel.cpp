@@ -283,7 +283,7 @@ void rumble_section(input::Manager& in, Config& config) {
     help_marker("How hard the controller shakes. Select the slider and press Enter or A, then Left "
                 "and Right, to change it with the keyboard or a controller.");
     if (ImGui::Button("Test rumble"))
-        in.rumble(rumble::motor(1.0f, strength), rumble::motor(0.6f, strength), 400);
+        in.rumble(rumble::motor(0.95f, strength), rumble::motor(0.55f, strength), 300);  // a heavy hit
     if (in.gamepad_count() == 0) {
         ImGui::SameLine();
         ImGui::TextDisabled("No controller connected");

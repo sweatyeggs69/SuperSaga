@@ -121,8 +121,8 @@ private:
     void update_speed();  // fast forward and rewind, read once per refresh
     rewind::History rewind_;
     rumble::Watcher rumble_watch_;
-    rumble::Mixer rumble_mix_;
-    void play_rumble(const rumble::Pulse& p);
+    rumble::Player rumble_player_;
+    void play_rumble(const rumble::Pattern& p);
     void stop_rumble();  // and forget the last frame (the game is paused, rewound or reloaded)
     const gba::Gba* rewind_owner_ = nullptr;  // the game the history belongs to
     int rewind_tick_ = 0;
@@ -591,22 +591,25 @@ void App::update_emulation() {
     }
 }
 
-void App::play_rumble(const rumble::Pulse& p) {
-    rumble_mix_.step();
-    const int strength = std::clamp(config_.get_int("input.rumble_strength", rumble::kDefaultStrength),
-                                    rumble::kMinStrength, 100);
-    if (!config_.get_bool("input.rumble", rumble::kDefaultOn)) {
-        if (rumble_mix_.playing()) stop_rumble();
+void App::play_rumble(const rumble::Pattern& p) {
+    // Off, or fast forwarding (patterns are timed in game frames, so they would play too fast):
+    // keep watching, so nothing piles up, but keep the motors quiet.
+    if (!config_.get_bool("input.rumble", rumble::kDefaultOn) || ff_speed_ > 1) {
+        if (rumble_player_.playing()) controls_->stop_rumble();
+        rumble_player_.clear();
         return;
     }
-    if (rumble_mix_.take(p))
-        controls_->rumble(rumble::motor(p.low, strength), rumble::motor(p.high, strength), p.ms);
+    const int strength = std::clamp(config_.get_int("input.rumble_strength", rumble::kDefaultStrength),
+                                    rumble::kMinStrength, 100);
+    rumble_player_.start(p);
+    if (const std::optional<rumble::Step> s = rumble_player_.next())
+        controls_->rumble(rumble::motor(s->low, strength), rumble::motor(s->high, strength), s->ms);
 }
 
 void App::stop_rumble() {
     rumble_watch_.reset();
-    if (rumble_mix_.playing()) controls_->stop_rumble();
-    rumble_mix_.clear();
+    if (rumble_player_.playing()) controls_->stop_rumble();
+    rumble_player_.clear();
 }
 
 void App::update_refresh_rate() {
