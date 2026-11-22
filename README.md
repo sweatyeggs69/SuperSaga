@@ -31,7 +31,10 @@ Or get the latest version for your system from the [Releases page](https://githu
 ## Getting started
 
 1. **Open SuperSaga** and click **Choose ROM...** to pick your dump. Only the USA release (game code
-   `A88E`, revision 0) is supported; other regions, revisions, hacks and damaged dumps are refused.
+   `A88E`, revision 0) is supported. Trimmed and overdumped files, files with a 512-byte copier
+   header, and dumps whose header was rewritten by a fixer or flash-cart tool are cleaned up in
+   memory (your file is not changed), and then checked against the exact USA dump. Other regions,
+   revisions and hacks are refused, and the launcher tells you which version you picked.
    SuperSaga only remembers where the file is. It never copies, uploads or changes it.
 2. **BIOS (optional).** No BIOS is needed. If you own a GBA BIOS dump, pick it in Settings > Game > BIOS
    to see the original boot animation.
