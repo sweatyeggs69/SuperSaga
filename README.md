@@ -28,6 +28,9 @@
 
 Or get the latest version for your system from the [Releases page](https://github.com/sweatyeggs69/SuperSaga/releases/latest).
 
+RecompLauncher installs and starts SuperSaga, but it does not ask for your ROM. SuperSaga has its
+own setup built in: the first time it opens, pick your ROM as described in Getting started below.
+
 ## Getting started
 
 1. **Open SuperSaga** and click **Choose ROM...** to pick your dump. Only the USA release (game code

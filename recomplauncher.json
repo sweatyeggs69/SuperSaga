@@ -3,22 +3,9 @@
   "format": 1,
   "name": "SuperSaga",
   "repo": "sweatyeggs69/SuperSaga",
-  "game": {
-    "kind": "iso",
-    "label": "Your own Game Boy Advance ROM (.gba) of Mario & Luigi: Superstar Saga, USA release (AGB-A88E), revision 0.",
-    "dumps": [
-      { "name": "USA", "size": 16777216, "crc32": "E718D850" }
-    ]
-  },
   "start": {
     "program": ["SuperSaga.exe", "usr/bin/supersaga", "supersaga", "AppRun"],
-    "args": ["--game", "{game}"]
-  },
-  "prepare": {
-    "program": ["SuperSaga.exe", "usr/bin/supersaga", "supersaga", "AppRun"],
-    "args": ["--prepare", "--game", "{game}"],
-    "label": "Checking your ROM and setting it as SuperSaga's game",
-    "timeout": 60
+    "args": []
   },
   "config": [
     {
@@ -27,8 +14,7 @@
       "file": [
         { "path": "{config}/SuperSaga/SuperSaga/settings.ini", "if": "{config}/Microsoft/Windows" },
         { "path": "{local}/SuperSaga/SuperSaga/settings.ini" }
-      ],
-      "game_path": "rom.path"
+      ]
     }
   ],
   "folders": {
@@ -43,10 +29,6 @@
     "{local}/SuperSaga/SuperSaga/saves",
     "{local}/SuperSaga/SuperSaga/states"
   ],
-  "exit_codes": {
-    "2": "SuperSaga couldn't find your ROM. Pick it again on the game's page.",
-    "3": "That ROM isn't the supported dump. SuperSaga needs Mario & Luigi: Superstar Saga (USA), revision 0."
-  },
   "settings": [
     {
       "id": "window",
