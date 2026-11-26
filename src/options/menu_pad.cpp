@@ -207,4 +207,24 @@ void new_frame() {
         io.BackendFlags |= ImGuiBackendFlags_HasGamepad;
 }
 
+
+void discard_queued() {
+    if (ImGui::GetCurrentContext()) ImGui::GetIO().ClearEventsQueue();
+}
+
+void reset() {
+    for (auto& p : g_pads) {
+        p.suppressed |= p.held;
+        p.held = 0;
+        for (int a = 0; a < SDL_GAMEPAD_AXIS_COUNT; ++a) {
+            if (p.axes[a] <= -kStickDeadZone || p.axes[a] >= kStickDeadZone) p.axis_suppressed[a] = true;
+            p.axes[a] = 0;
+        }
+    }
+    if (!ImGui::GetCurrentContext()) return;
+    ImGuiIO& io = ImGui::GetIO();
+    io.ClearEventsQueue();
+    io.ClearInputKeys();
+}
+
 }  // namespace supersaga::menu_pad

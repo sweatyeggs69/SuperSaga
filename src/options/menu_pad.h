@@ -21,5 +21,12 @@ void init();
 void handle_event(const SDL_Event& e, bool consumed);
 // Call between ImGui_ImplSDL3_NewFrame and ImGui::NewFrame (the backend clears the gamepad flag).
 void new_frame();
+// Call on every refresh that runs no ImGui frame (gameplay). Controller events keep arriving while
+// no menu is drawn; ImGui would queue them all and replay them when the settings menu opens, so a
+// B press made while playing closed the menu again right away (east is Back in the sidebar).
+void discard_queued();
+// Call when the settings menu opens: drops queued input, and buttons or sticks held right now are
+// ignored until let go, so the press that opened the menu (or one still held) can't act in it.
+void reset();
 
 }  // namespace supersaga::menu_pad
