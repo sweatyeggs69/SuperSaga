@@ -15,6 +15,11 @@
 
 namespace supersaga {
 
+// Portable mode: with a file named portable.txt next to the app (next to the .exe, the AppImage or
+// the .app bundle), settings, saves and states live in a "userdata" folder beside it instead of the
+// user folder. Empty when portable mode is off or that folder can't be created.
+std::filesystem::path portable_dir();
+
 class Config {
 public:
     // Loads <pref dir>/settings.ini. If pref_dir is empty, SDL_GetPrefPath("SuperSaga","SuperSaga") is used.
