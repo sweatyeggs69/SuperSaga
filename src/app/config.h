@@ -45,12 +45,21 @@ public:
     void set_float(const std::string& key, float value);
     void erase(const std::string& key);
 
+    // File paths (UTF-8), such as rom.path and bios.path. In portable mode a file inside the app's
+    // folder is stored relative to it, so the folder still works when moved or opened from another
+    // computer; get_file turns a relative value back into a full path.
+    std::string get_file(const std::string& key) const;
+    void set_file(const std::string& key, const std::string& utf8_path);
+    bool portable() const { return portable_; }
+
     const std::map<std::string, std::string>& values() const { return values_; }
     bool save() const;
     bool load();
 
 private:
     std::filesystem::path pref_dir_, file_;
+    std::filesystem::path app_dir_;  // the app's folder, set in portable mode
+    bool portable_ = false;
     std::map<std::string, std::string> values_;
 };
 

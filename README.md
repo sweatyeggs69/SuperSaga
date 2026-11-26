@@ -94,7 +94,8 @@ Saves, save states and settings live in your user folder, never inside the app:
 **Portable mode:** put an empty file named `portable.txt` next to SuperSaga (next to the `.exe` on
 Windows, the AppImage on Linux, or the app on macOS). SuperSaga then keeps everything in a `userdata`
 folder beside it, so the whole folder can live on a USB stick or a NAS. Copy your old files into
-`userdata` to bring them along.
+`userdata` to bring them along. A ROM or BIOS chosen from inside that folder is remembered relative to
+it, so the folder keeps working when moved to another computer.
 
 Settings > States > **Show save folder** opens it.
 
