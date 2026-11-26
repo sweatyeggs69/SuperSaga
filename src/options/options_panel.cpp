@@ -587,7 +587,7 @@ void draw_page(PanelState& st, const Page& page) {
         // The body scrolls under the fixed title; its scrollbar sits near the panel edge.
         ImGui::SetCursorPosX(kPadX);
         ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-        ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, 8.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_ScrollbarSize, 16.0f);
         // NavFlattened (here and on each card): the d-pad moves straight through the cards
         // without having to "enter" each one first.
         const bool body = ImGui::BeginChild("body", ImVec2(-14.0f, -16.0f), ImGuiChildFlags_NavFlattened);
