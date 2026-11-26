@@ -215,7 +215,7 @@ bool http_download(const std::string& url, const fs::path& file, const HttpOptio
     SDL_DestroyProcess(proc);
     int status = 0;
     if (size_t m = msg.rfind("SUPERSAGA_HTTP_STATUS="); m != std::string::npos) {
-        status = std::atoi(msg.c_str() + m + 17);
+        status = std::atoi(msg.c_str() + m + sizeof "SUPERSAGA_HTTP_STATUS=" - 1);
         msg.erase(m);
     }
     while (!msg.empty() && (msg.back() == '\n' || msg.back() == '\r')) msg.pop_back();
