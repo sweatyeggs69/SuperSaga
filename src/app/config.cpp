@@ -21,6 +21,11 @@ std::filesystem::path from_utf8(const char* s) {
     return std::filesystem::path(std::u8string(u.begin(), u.end()));
 }
 
+std::string to_utf8(const std::filesystem::path& p) {
+    const std::u8string u = p.u8string();
+    return std::string(u.begin(), u.end());
+}
+
 // The folder the player sees the app in: the AppImage's folder on Linux, the folder holding the
 // .app bundle on macOS, the .exe's folder on Windows.
 std::filesystem::path app_folder() {
@@ -54,7 +59,13 @@ std::filesystem::path portable_dir() {
 }
 
 Config::Config(std::filesystem::path pref_dir) : pref_dir_(std::move(pref_dir)) {
-    if (pref_dir_.empty()) pref_dir_ = portable_dir();
+    if (pref_dir_.empty()) {
+        pref_dir_ = portable_dir();
+        if (!pref_dir_.empty()) {
+            portable_ = true;
+            app_dir_ = pref_dir_.parent_path();
+        }
+    }
     if (pref_dir_.empty()) {
         if (char* p = SDL_GetPrefPath("SuperSaga", "SuperSaga")) {
             pref_dir_ = p;
@@ -150,6 +161,29 @@ void Config::set_float(const std::string& key, float value) {
 
 void Config::erase(const std::string& key) {
     if (values_.erase(key)) save();
+}
+
+
+std::string Config::get_file(const std::string& key) const {
+    std::string v = get_string(key);
+    if (v.empty() || !portable_) return v;
+    const std::filesystem::path p = from_utf8(v.c_str());
+    if (p.is_absolute() || p.has_root_name()) return v;
+    return to_utf8((app_dir_ / p).lexically_normal());
+}
+
+void Config::set_file(const std::string& key, const std::string& utf8_path) {
+    if (portable_ && !utf8_path.empty()) {
+        const std::filesystem::path p = from_utf8(utf8_path.c_str());
+        if (p.is_absolute()) {
+            const std::filesystem::path rel = p.lexically_normal().lexically_relative(app_dir_.lexically_normal());
+            if (!rel.empty() && *rel.begin() != "..") {
+                set_string(key, to_utf8(rel));
+                return;
+            }
+        }
+    }
+    set_string(key, utf8_path);
 }
 
 }  // namespace supersaga

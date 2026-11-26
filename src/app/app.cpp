@@ -359,7 +359,7 @@ void App::shutdown() {
 }
 
 void App::load_configured_rom() {
-    std::string path = config_.get_string("rom.path");
+    std::string path = config_.get_file("rom.path");
     if (path.empty()) return;
     VerifiedRom v = verify_rom(utf8_path(path));
     if (v.ok && v.rom.sha1 == config_.get_string("rom.sha1", v.rom.sha1)) {
@@ -376,7 +376,7 @@ void App::accept_rom(const fs::path& path) {
         return;
     }
     rom_error_.clear();
-    config_.set_string("rom.path", path_utf8(v.path));
+    config_.set_file("rom.path", path_utf8(v.path));
     config_.set_string("rom.sha1", v.rom.sha1);
     rom_ = std::move(v);
     game_.reset();
@@ -410,7 +410,7 @@ void App::open_bios_dialog() {
 }
 
 std::optional<std::vector<std::uint8_t>> App::load_bios(std::string* error) {
-    fs::path p = !opt_.bios.empty() ? opt_.bios : utf8_path(config_.get_string("bios.path"));
+    fs::path p = !opt_.bios.empty() ? opt_.bios : utf8_path(config_.get_file("bios.path"));
     if (p.empty()) return std::nullopt;
     std::ifstream f(p, std::ios::binary);
     std::vector<std::uint8_t> bios((std::istreambuf_iterator<char>(f)), std::istreambuf_iterator<char>());
@@ -1576,7 +1576,7 @@ void App::draw_game_tab(Config& config) {
     draw_save_section();
 
     theme::section("BIOS (optional)");
-    std::string bios = config_.get_string("bios.path");
+    std::string bios = config_.get_file("bios.path");
     if (bios != bios_checked_path_) {  // verify once per change, not every frame
         bios_checked_path_ = bios;
         bios_status_.clear();
@@ -1779,7 +1779,7 @@ int App::run() {
                 picked_state_import_.reset();
             }
             if (picked_bios_) {
-                config_.set_string("bios.path", *picked_bios_);
+                config_.set_file("bios.path", *picked_bios_);
                 std::string err;
                 if (!load_bios(&err)) {
                     config_.erase("bios.path");
